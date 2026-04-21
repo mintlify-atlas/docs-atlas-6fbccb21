@@ -1,0 +1,246 @@
+---
+title: "Card: Container for displaying grouped content"
+description: "Group related content with Ant Design Card — a bordered surface with optional title, cover image, action buttons, and nested grid layouts."
+---
+
+The `Card` component is a general-purpose content container. It provides a bordered surface with a header area for a title and extra actions, a body for arbitrary content, an optional cover image at the top, and an actions bar at the bottom. Cards are commonly used for product listings, profile summaries, dashboards widgets, and settings panels.
+
+## Installation
+
+```bash
+npm install antd
+```
+
+## Basic usage
+
+Pass a `title` and optional `extra` content to render a standard card. Place any content inside the card as children.
+
+```tsx basic-card.tsx
+import React from 'react';
+import { Card } from 'antd';
+
+export default function BasicCard() {
+  return (
+    <Card
+      title="Project summary"
+      extra={<a href="#">View all</a>}
+      style={{ width: 340 }}
+    >
+      <p>Status: In progress</p>
+      <p>Deadline: 30 June 2026</p>
+      <p>Team size: 5 members</p>
+    </Card>
+  );
+}
+```
+
+## Card.Meta with cover and actions
+
+Use `cover` to place an image at the top of the card. Use `Card.Meta` inside the body to render an avatar, title, and description in a structured layout. Pass an `actions` array to add icon buttons to the bottom bar.
+
+```tsx meta-card.tsx
+import React from 'react';
+import { EditOutlined, EllipsisOutlined, ShareAltOutlined } from '@ant-design/icons';
+import { Avatar, Card } from 'antd';
+
+const { Meta } = Card;
+
+export default function MetaCard() {
+  return (
+    <Card
+      style={{ width: 300 }}
+      cover={
+        <img
+          alt="Mountain landscape"
+          src="https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png"
+        />
+      }
+      actions={[
+        <ShareAltOutlined key="share" />,
+        <EditOutlined key="edit" />,
+        <EllipsisOutlined key="more" />,
+      ]}
+    >
+      <Meta
+        avatar={<Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=4" />}
+        title="Sunset hike"
+        description="A 12 km trail through alpine meadows with panoramic views."
+      />
+    </Card>
+  );
+}
+```
+
+<Note>
+  `actions` accepts an array of `ReactNode` elements. Each item is rendered as an equal-width cell in the actions bar. Use icon components from `@ant-design/icons` for a consistent look.
+</Note>
+
+## Tabs inside a card
+
+Pass `tabList` and `onTabChange` to embed a tab bar in the card header. Control the active tab with `activeTabKey` or let it manage itself with `defaultActiveTabKey`.
+
+```tsx tabbed-card.tsx
+import React, { useState } from 'react';
+import { Card } from 'antd';
+
+const tabs = [
+  { key: 'overview', label: 'Overview' },
+  { key: 'activity', label: 'Activity' },
+  { key: 'settings', label: 'Settings' },
+];
+
+const content: Record<string, string> = {
+  overview: 'This section shows the project overview.',
+  activity: 'Recent commits, PRs, and comments appear here.',
+  settings: 'Configure project visibility and integrations.',
+};
+
+export default function TabbedCard() {
+  const [activeKey, setActiveKey] = useState('overview');
+
+  return (
+    <Card
+      title="Repository"
+      tabList={tabs}
+      activeTabKey={activeKey}
+      onTabChange={setActiveKey}
+      extra={<a href="#">Edit</a>}
+    >
+      {content[activeKey]}
+    </Card>
+  );
+}
+```
+
+## Grid card
+
+Use `Card.Grid` children to create an internal grid layout. Each grid cell is hoverable by default.
+
+```tsx grid-card.tsx
+import React from 'react';
+import { Card } from 'antd';
+
+const metrics = [
+  { label: 'Users', value: '12,340' },
+  { label: 'Sessions', value: '48,201' },
+  { label: 'Bounce rate', value: '34%' },
+  { label: 'Avg. duration', value: '3m 12s' },
+  { label: 'Conversions', value: '1,024' },
+  { label: 'Revenue', value: '$84,200' },
+];
+
+const gridStyle: React.CSSProperties = {
+  width: '33.33%',
+  textAlign: 'center',
+};
+
+export default function GridCard() {
+  return (
+    <Card title="Analytics overview">
+      {metrics.map((m) => (
+        <Card.Grid key={m.label} style={gridStyle}>
+          <div style={{ fontSize: 20, fontWeight: 600 }}>{m.value}</div>
+          <div style={{ color: '#888' }}>{m.label}</div>
+        </Card.Grid>
+      ))}
+    </Card>
+  );
+}
+```
+
+## Variants and sizes
+
+<Tabs>
+  <Tab title="Borderless">
+    Use `variant="borderless"` to remove the card border, useful when the card sits on a coloured background.
+
+    ```tsx borderless-card.tsx
+    import React from 'react';
+    import { Card } from 'antd';
+
+    export default function BorderlessCard() {
+      return (
+        <div style={{ background: '#f5f5f5', padding: 24 }}>
+          <Card variant="borderless" title="Borderless card">
+            No border is drawn around this card.
+          </Card>
+        </div>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="Small size">
+    Use `size="small"` for a more compact header and body padding.
+
+    ```tsx small-card.tsx
+    import React from 'react';
+    import { Card } from 'antd';
+
+    export default function SmallCard() {
+      return (
+        <Card size="small" title="Compact card" style={{ width: 240 }}>
+          Reduced padding for dense layouts.
+        </Card>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="Hoverable">
+    Set `hoverable` to lift the card on mouse hover.
+
+    ```tsx hoverable-card.tsx
+    import React from 'react';
+    import { Card } from 'antd';
+
+    export default function HoverableCard() {
+      return (
+        <Card hoverable style={{ width: 240 }}>
+          Hover over me.
+        </Card>
+      );
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Card props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `ReactNode` | - | Card header title |
+| `extra` | `ReactNode` | - | Content in the top-right corner of the header |
+| `cover` | `ReactNode` | - | Cover image or element rendered above the body |
+| `actions` | `ReactNode[]` | - | Action icons rendered in the bottom bar |
+| `tabList` | `CardTabListType[]` | - | Tab items in the card header |
+| `activeTabKey` | `string` | - | Controlled active tab key |
+| `defaultActiveTabKey` | `string` | First tab | Initial active tab key (uncontrolled) |
+| `onTabChange` | `(key: string) => void` | - | Fired when the active tab changes |
+| `loading` | `boolean` | `false` | Show a skeleton placeholder while loading |
+| `hoverable` | `boolean` | `false` | Lift the card on hover |
+| `variant` | `"outlined" \| "borderless"` | `"outlined"` | Border style (v5.24+) |
+| `size` | `"medium" \| "small"` | `"medium"` | Card density |
+| `type` | `"inner"` | - | Render as an inner nested card |
+| `styles` | `CardSemanticStyles` | - | Per-slot inline style overrides |
+| `classNames` | `CardSemanticClassNames` | - | Per-slot class name overrides |
+
+## Card.Meta props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `avatar` | `ReactNode` | Avatar or icon on the left |
+| `title` | `ReactNode` | Primary text |
+| `description` | `ReactNode` | Secondary text below the title |
+| `className` | `string` | Class on the meta container |
+| `style` | `CSSProperties` | Style on the meta container |
+
+## Card.Grid props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `hoverable` | `boolean` | `true` | Lift this cell on hover |
+| `style` | `CSSProperties` | - | Style on the grid cell |
+| `className` | `string` | - | Class on the grid cell |
+
+<Tip>
+  Nest a `Card` with `type="inner"` inside another card body to create indented inner cards. This is useful for showing sub-sections within a parent card without adding full borders.
+</Tip>

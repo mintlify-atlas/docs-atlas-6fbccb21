@@ -1,0 +1,379 @@
+---
+title: "Using Ant Design with Umi: Enterprise App Framework Guide"
+description: "Build a full-featured enterprise React application with Umi, Ant Design, and Ant Design Pro — covering routing, mock data, data fetching, and ProLayout."
+---
+
+Umi is a scalable enterprise front-end application framework developed at Ant Group, which has powered over 10,000 applications. Unlike lightweight bundlers, Umi provides an integrated solution covering routing, CSS handling, data flow, request libraries, i18n, permissions, and more — all pre-wired to work together. This guide walks through building a simple product management application from scratch using Umi, Ant Design, and Ant Design Pro.
+
+## Initialize the project
+
+The recommended way to create a Umi scaffold is with [pnpm](https://pnpm.io/).
+
+<Steps>
+  <Step title="Create the project directory and run the Umi scaffold">
+    ```bash
+    mkdir myapp && cd myapp
+    pnpm create umi
+    ```
+
+    <Note>
+      If you use npm, run `npm create umi`. For yarn, run `yarn create umi`. For bun, run `bunx create-umi` (note the hyphen between `create` and `umi`).
+    </Note>
+  </Step>
+
+  <Step title="Select the Simple App template">
+    When prompted, choose **Simple App** to start from a minimal scaffold.
+
+    ```bash
+    ? Pick Umi App Template › - Use arrow-keys. Return to submit.
+    ❯   Simple App
+        Ant Design Pro
+        Vue Simple App
+    ```
+  </Step>
+
+  <Step title="Select pnpm as the package manager">
+    pnpm is recommended for its speed and superior handling of phantom dependencies.
+
+    ```bash
+    ? Pick Npm Client › - Use arrow-keys. Return to submit.
+        npm
+        cnpm
+        tnpm
+        yarn
+    ❯   pnpm
+    ```
+  </Step>
+
+  <Step title="Select an npm registry">
+    Choose **taobao** if you are in China; otherwise choose **npm**.
+
+    ```bash
+    ? Pick Npm Registry › - Use arrow-keys. Return to submit.
+    ❯   npm
+        taobao
+    ```
+
+    Umi will automatically install dependencies and run the initialization script.
+  </Step>
+
+  <Step title="Install additional dependencies">
+    Before starting the dev server, install the packages needed for this tutorial.
+
+    ```bash
+    pnpm i @umijs/plugins -D
+    pnpm i antd axios @ant-design/pro-components -S
+    ```
+
+    - `@umijs/plugins` — Official Umi plugin set (valtio, react-query, styled-components, locale, access, qiankun, etc.)
+    - `antd` — Ant Design component library
+    - `axios` — HTTP request library
+    - `@ant-design/pro-components` — ProLayout and other advanced enterprise components
+  </Step>
+
+  <Step title="Start the development server">
+    ```bash
+    npm run dev
+    ```
+
+    The terminal will print the local URL. Open it in your browser and you should see the default Umi starter page.
+  </Step>
+</Steps>
+
+## Create new routes
+
+Umi uses configured routing by default. You need to declare new routes explicitly in `.umirc.ts`.
+
+<Steps>
+  <Step title="Generate a products page">
+    Use the Umi CLI to generate the page files automatically.
+
+    ```bash
+    npx umi g page products
+    ```
+
+    This writes two files:
+    - `src/pages/products.tsx`
+    - `src/pages/products.less`
+  </Step>
+
+  <Step title="Register the route in .umirc.ts">
+    Add the `/products` route to the configuration file.
+
+    ```diff
+    import { defineConfig } from "umi";
+
+    export default defineConfig({
+      routes: [
+        { path: "/", component: "index" },
+        { path: "/docs", component: "docs" },
+    +    { path: "/products", component: "products" },
+      ],
+      npmClient: "pnpm",
+    });
+    ```
+
+    <Note>
+      Umi also supports file-system based routing where directory structure determines routes automatically. See the [Umi routing documentation](https://umijs.org/docs/guides/routes) for details.
+    </Note>
+  </Step>
+
+  <Step title="Add navigation to the global layout">
+    Edit `src/layouts/index.tsx` and add a link to the products page in the global navigation.
+
+    ```diff
+    <li>
+      <Link to="/docs">Docs</Link>
+    </li>
+    + <li>
+    +   <Link to="/products">Products</Link>
+    + </li>
+    ```
+
+    Open `http://localhost:8000/products` to verify the page loads.
+  </Step>
+</Steps>
+
+## Build the ProductList component
+
+Create a reusable component using antd's `Table`, `Button`, and `Popconfirm` components.
+
+Create `src/components/ProductList.tsx`:
+
+```tsx
+import React from 'react';
+import { Button, Popconfirm, Table } from 'antd';
+import type { TableProps } from 'antd';
+
+interface DataType {
+  id: string;
+  name: string;
+}
+
+const ProductList: React.FC<{ products: DataType[]; onDelete: (id: string) => void }> = ({
+  onDelete,
+  products,
+}) => {
+  const columns: TableProps<DataType>['columns'] = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+    },
+    {
+      title: 'Actions',
+      render(text, record) {
+        return (
+          <Popconfirm title="Delete?" onConfirm={() => onDelete(record.id)}>
+            <Button>Delete</Button>
+          </Popconfirm>
+        );
+      },
+    },
+  ];
+  return <Table rowKey="id" dataSource={products} columns={columns} />;
+};
+
+export default ProductList;
+```
+
+## Prepare mock data
+
+Umi includes a built-in [Mock function](https://umijs.org/docs/guides/mock) for simulating API responses during development. Create `mock/products.ts` in the project root:
+
+```ts
+import { defineMock } from 'umi';
+
+type Product = {
+  id: string;
+  name: string;
+};
+
+let products: Product[] = [
+  { id: '1', name: 'Umi' },
+  { id: '2', name: 'Ant Design' },
+  { id: '3', name: 'Ant Design Pro' },
+  { id: '4', name: 'Dva' },
+];
+
+export default defineMock({
+  'GET /api/products': (_, res) => {
+    res.send({
+      status: 'ok',
+      data: products,
+    });
+  },
+  'DELETE /api/products/:id': (req, res) => {
+    products = products.filter((item) => item.id !== req.params.id);
+    res.send({ status: 'ok' });
+  },
+});
+```
+
+Visit `http://localhost:8000/api/products` to confirm the mock API is responding.
+
+## Complete the products page
+
+Wire the component and mock data together using `react-query` for data fetching.
+
+<Steps>
+  <Step title="Enable the react-query plugin in .umirc.ts">
+    ```diff
+    import { defineConfig } from "umi";
+
+    export default defineConfig({
+    +  plugins: ['@umijs/plugins/dist/react-query'],
+    +  reactQuery: {},
+      routes: [
+        { path: "/", component: "index" },
+        { path: "/docs", component: "docs" },
+        { path: "/products", component: "products" },
+      ],
+      npmClient: 'pnpm',
+    });
+    ```
+  </Step>
+
+  <Step title="Implement src/pages/products.tsx">
+    Use `useQuery` to fetch the product list and `useMutation` to handle deletions.
+
+    ```tsx
+    import React from 'react';
+    import axios from 'axios';
+    import { useMutation, useQuery, useQueryClient } from 'umi';
+
+    import styles from './products.less';
+    import ProductList from '@/components/ProductList';
+
+    export default function Page() {
+      const queryClient = useQueryClient();
+      const productsQuery = useQuery(['products'], {
+        queryFn() {
+          return axios.get('/api/products').then((res) => res.data);
+        },
+      });
+      const productsDeleteMutation = useMutation({
+        mutationFn(id: string) {
+          return axios.delete(`/api/products/${id}`);
+        },
+        onSettled: () => {
+          queryClient.invalidateQueries({ queryKey: ['products'] });
+        },
+      });
+      if (productsQuery.isLoading) {
+        return null;
+      }
+      return (
+        <div>
+          <h1 className={styles.title}>Page products</h1>
+          <ProductList
+            products={productsQuery.data.data}
+            onDelete={(id) => {
+              productsDeleteMutation.mutate(id);
+            }}
+          />
+        </div>
+      );
+    }
+    ```
+  </Step>
+</Steps>
+
+## Add ProLayout
+
+[ProLayout](https://procomponents.ant.design/components/layout/) is a high-level layout component that provides sidebar navigation, breadcrumbs, and page headers out of the box.
+
+<Steps>
+  <Step title="Add name fields to route configuration">
+    ProLayout uses the `name` field from each route to build the menu.
+
+    ```diff
+    import { defineConfig } from "umi";
+
+    export default defineConfig({
+      routes: [
+    -    { path: "/", component: "index" },
+    +    { path: "/", component: "index", name: "home" },
+    -    { path: "/docs", component: "docs" },
+    +    { path: "/docs", component: "docs", name: "docs" },
+    -    { path: "/products", component: "products" },
+    +    { path: "/products", component: "products", name: "products" },
+      ],
+      plugins: ["@umijs/plugins/dist/react-query"],
+      reactQuery: {},
+      npmClient: "pnpm",
+    });
+    ```
+  </Step>
+
+  <Step title="Replace src/layouts/index.tsx with ProLayout">
+    ```tsx
+    import { ProLayout } from '@ant-design/pro-components';
+    import { Link, Outlet, useAppData, useLocation } from 'umi';
+
+    export default function Layout() {
+      const { clientRoutes } = useAppData();
+      const location = useLocation();
+      return (
+        <ProLayout
+          route={clientRoutes[0]}
+          location={location}
+          title="Umi x Ant Design"
+          menuItemRender={(menuItemProps, defaultDom) => {
+            if (menuItemProps.isUrl || menuItemProps.children) {
+              return defaultDom;
+            }
+            if (menuItemProps.path && location.pathname !== menuItemProps.path) {
+              return (
+                <Link to={menuItemProps.path} target={menuItemProps.target}>
+                  {defaultDom}
+                </Link>
+              );
+            }
+            return defaultDom;
+          }}
+        >
+          <Outlet />
+        </ProLayout>
+      );
+    }
+    ```
+
+    The browser will hot-reload and display the full ProLayout with sidebar navigation and menu highlighting based on the current route.
+  </Step>
+</Steps>
+
+## Build for production
+
+When development is complete, run the build command to produce optimized static assets.
+
+```bash
+npm run build
+```
+
+The output will be placed in the `dist/` directory, containing JavaScript, CSS, web fonts, images, and HTML — ready for deployment.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Umi official documentation" icon="book" href="https://umijs.org/">
+    Explore Umi's routing, plugins, data flow, and configuration options.
+  </Card>
+  <Card title="Umi Max" icon="layers" href="https://umijs.org/docs/max/introduce">
+    A more integrated distribution of Umi with additional built-in plugins for enterprise apps.
+  </Card>
+  <Card title="Ant Design Pro" icon="layout" href="https://pro.ant.design/">
+    Out-of-the-box mid/back office scaffolding built on Umi and Ant Design.
+  </Card>
+  <Card title="ProTable" icon="table" href="https://procomponents.ant.design/components/table">
+    Advanced table component with built-in search, filters, and CRUD operations.
+  </Card>
+</CardGroup>
+
+<CardGroup cols={2}>
+  <Card title="Use with Vite" icon="arrow-right" href="/frameworks/use-with-vite">
+    Simpler client-only setup for Vite-based React projects.
+  </Card>
+  <Card title="Use with Next.js" icon="arrow-right" href="/frameworks/use-with-next">
+    Server-side rendering with Next.js App Router or Pages Router.
+  </Card>
+</CardGroup>

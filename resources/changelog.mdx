@@ -1,0 +1,57 @@
+---
+title: "Ant Design React Changelog and v6.x Release History"
+description: "Recent release highlights for antd v6.x, including new features, bug fixes, and breaking changes. antd follows Semantic Versioning 2.0.0."
+---
+
+`antd` follows [Semantic Versioning 2.0.0](http://semver.org/). The release schedule is:
+
+- **Patch** releases ship weekly with routine bug fixes (or immediately for urgent fixes).
+- **Minor** releases ship monthly with new features.
+- **Major** releases are unscheduled and carry breaking changes.
+
+The highlights below cover the most significant changes in v6.x. For the complete, unabridged history see the [full changelog on GitHub](https://github.com/ant-design/ant-design/blob/master/CHANGELOG.en-US.md).
+
+## v6.x highlights
+
+### 6.3.x (February – April 2026)
+
+**6.3.6** `2026-04-17`
+
+- Fixed InputNumber disabled handlers showing hover styles.
+- Fixed design token shadow tokens not adapting to dark theme.
+- Table: two performance improvements to filter key caching and search input normalisation.
+- Fixed Image preview focus lock when opened via keyboard; restores focus after close.
+
+**6.3.4** `2026-03-24`
+
+- Added [`@ant-design/cli`](https://www.npmjs.com/package/@ant-design/cli), an official command-line tool for querying component knowledge, analysing project usage, and guiding migrations offline.
+- Fixed missing `screenXXXLMin` in `useToken` causing incorrect `antd.css` output.
+
+**6.3.2** `2026-03-09`
+
+- Unified `size` enumeration across Badge, Card, Progress, Steps, Switch, Spin, Descriptions, Table, and Divider — replacing `default` / `middle` with `medium` for consistency.
+- Added `es_US` locale preset.
+- Select: fixed text jumping in Firefox; fixed inability to set `visibility: hidden` via `style`.
+- Upload: improved action area visibility on non-hover and coarse-pointer (touch) devices.
+- Added `prefers-reduced-motion` support for Button, Checkbox, Radio, Switch, and Segmented.
+
+**6.3.0** `2026-02-10`
+
+- **ConfigProvider expanded**: global configuration now covers `maskClosable` for Modal/Drawer; `suffixIcon` for DatePicker/TimePicker; `expandIcon`/`loadingIcon` for Cascader; `scroll` for Table; `loadingIcon` for Button; `tooltipIcon`/`tooltipProps` for Form.
+- Grid: added `xxxl` (1920 px) breakpoint for FHD screens.
+- Switch: added `indicator` prop for semantic structure customisation.
+- Spin: refactored DOM structure for full semantic structure support.
+- Modal & Drawer: disabled mask blur effect by default.
+- Accessibility improvements to Tree (keyboard navigation) and Icon SVG titles for screen readers.
+
+### 6.2.x (January – February 2026)
+
+| Version | Date | Notable changes |
+|---|---|---|
+| 6.2.3 | 2026-02-02 | Fixed multiple Button token variants not taking effect; fixed `Button variant="solid"` borders inside `Space.Compact`. |
+| 6.2.2 | 2026-01-26 | Fixed Button with `href` inside Typography; fixed component token for `type="text"` Button; fixed Pagination alignment with large `fontSize`. |
+| 6.2.1 | 2026-01-20 | Fixed Button two-CJK-character `className` being cleared; improved `background` → `background-color` transitions across all components. |
+
+<Note>
+  This page summarises recent releases. For every fix, improvement, and contributor link since the beginning of the project, refer to the [full changelog on GitHub](https://github.com/ant-design/ant-design/blob/master/CHANGELOG.en-US.md).
+</Note>

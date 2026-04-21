@@ -1,0 +1,207 @@
+---
+title: "Layout: Ant Design Page Structure Components"
+description: "Build full-page layouts with Ant Design Layout, Header, Sider, Content, and Footer — collapsible sidebars, responsive breakpoints, and theme support."
+---
+
+The `Layout` component group provides the structural scaffolding for a page. It is built on CSS Flexbox and lets you compose `Header`, `Sider`, `Content`, and `Footer` zones freely. The `Sider` component supports collapsing, responsive breakpoints, and both light and dark themes.
+
+## Component overview
+
+| Component | Role |
+|-----------|------|
+| `Layout` | Outer container. Accepts any combination of sub-components. |
+| `Layout.Header` | Top navigation bar (default height 64 px). |
+| `Layout.Sider` | Collapsible sidebar. Must be a direct child of `Layout`. |
+| `Layout.Content` | Main content area. Must be a direct child of `Layout`. |
+| `Layout.Footer` | Bottom bar for copyright, links, etc. |
+
+## Basic usage
+
+```tsx basic-layout.tsx
+import React from 'react';
+import { Layout } from 'antd';
+
+const { Header, Content, Footer } = Layout;
+
+const App: React.FC = () => (
+  <Layout>
+    <Header style={{ color: '#fff' }}>Header</Header>
+    <Content style={{ minHeight: 280, padding: 24 }}>Content</Content>
+    <Footer style={{ textAlign: 'center' }}>Footer © 2025</Footer>
+  </Layout>
+);
+
+export default App;
+```
+
+## Common patterns
+
+<Tabs>
+  <Tab title="Header / Sider / Content">
+    ```tsx top-side-layout.tsx
+    import React from 'react';
+    import { Layout } from 'antd';
+
+    const { Header, Sider, Content, Footer } = Layout;
+
+    const App: React.FC = () => (
+      <Layout style={{ minHeight: '100vh' }}>
+        <Header style={{ color: '#fff' }}>Header</Header>
+        <Layout>
+          <Sider theme="light" width={200}>
+            Navigation
+          </Sider>
+          <Content style={{ padding: 24 }}>Main content</Content>
+        </Layout>
+        <Footer style={{ textAlign: 'center' }}>Footer</Footer>
+      </Layout>
+    );
+
+    export default App;
+    ```
+  </Tab>
+  <Tab title="Sider + Header / Content / Footer">
+    ```tsx side-first-layout.tsx
+    import React from 'react';
+    import { Layout } from 'antd';
+
+    const { Header, Sider, Content, Footer } = Layout;
+
+    const App: React.FC = () => (
+      <Layout style={{ minHeight: '100vh' }}>
+        <Sider>Navigation</Sider>
+        <Layout>
+          <Header style={{ color: '#fff' }}>Header</Header>
+          <Content style={{ padding: 24 }}>Main content</Content>
+          <Footer>Footer</Footer>
+        </Layout>
+      </Layout>
+    );
+
+    export default App;
+    ```
+  </Tab>
+</Tabs>
+
+## Collapsible sidebar
+
+Set `collapsible` on `Layout.Sider` to show a built-in toggle trigger. Control the state externally with `collapsed` and `onCollapse`:
+
+```tsx collapsible-sider.tsx
+import React, { useState } from 'react';
+import { Layout, Menu } from 'antd';
+import {
+  HomeOutlined,
+  SettingOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
+
+const { Header, Sider, Content } = Layout;
+
+const App: React.FC = () => {
+  const [collapsed, setCollapsed] = useState(false);
+
+  return (
+    <Layout style={{ minHeight: '100vh' }}>
+      <Sider
+        collapsible
+        collapsed={collapsed}
+        onCollapse={setCollapsed}
+        theme="light"
+      >
+        <Menu
+          mode="inline"
+          defaultSelectedKeys={['home']}
+          items={[
+            { key: 'home', icon: <HomeOutlined />, label: 'Home' },
+            { key: 'user', icon: <UserOutlined />, label: 'Users' },
+            { key: 'settings', icon: <SettingOutlined />, label: 'Settings' },
+          ]}
+        />
+      </Sider>
+      <Layout>
+        <Header style={{ background: '#fff', padding: 0 }} />
+        <Content style={{ margin: 24, padding: 24, background: '#fff' }}>
+          Content area
+        </Content>
+      </Layout>
+    </Layout>
+  );
+};
+
+export default App;
+```
+
+## Responsive sider
+
+Use the `breakpoint` prop to automatically collapse the sider when the viewport is narrower than the given breakpoint:
+
+```tsx responsive-sider.tsx
+import React from 'react';
+import { Layout } from 'antd';
+
+const { Sider, Content } = Layout;
+
+const App: React.FC = () => (
+  <Layout>
+    <Sider
+      breakpoint="lg"
+      collapsedWidth={0}
+      onBreakpoint={(broken) => console.log('broken:', broken)}
+      onCollapse={(collapsed, type) => console.log(collapsed, type)}
+    >
+      Sider
+    </Sider>
+    <Content>Content</Content>
+  </Layout>
+);
+
+export default App;
+```
+
+<Note>
+When `collapsedWidth` is set to `0`, a special floating trigger appears on the sider to re-expand it. Style this trigger with `zeroWidthTriggerStyle`.
+</Note>
+
+## API
+
+### Layout
+
+| Property | Description | Type | Default |
+|----------|-------------|------|---------|
+| `className` | Container class name | string | - |
+| `style` | Inline styles | CSSProperties | - |
+| `hasSider` | Hint that this layout contains a `Sider`. Avoids a flash of unstyled content during SSR. | boolean | - |
+
+### Layout.Header / Layout.Content / Layout.Footer
+
+These accept standard HTML `<div>` props (`className`, `style`, `children`, etc.).
+
+### Layout.Sider
+
+| Property | Description | Type | Default |
+|----------|-------------|------|---------|
+| `collapsed` | Controlled collapsed state | boolean | - |
+| `collapsible` | Show the collapse/expand trigger | boolean | `false` |
+| `defaultCollapsed` | Initial collapsed state | boolean | `false` |
+| `collapsedWidth` | Width when collapsed in px | number | `80` |
+| `width` | Width when expanded | `number` \| `string` | `200` |
+| `theme` | Color theme of the sidebar | `light` \| `dark` | `dark` |
+| `trigger` | Custom trigger element; `null` hides the trigger | ReactNode | - |
+| `breakpoint` | Responsive breakpoint to auto-collapse | `xs` \| `sm` \| `md` \| `lg` \| `xl` \| `xxl` \| `xxxl` | - |
+| `reverseArrow` | Reverse the collapse arrow direction (for right-side siders) | boolean | `false` |
+| `zeroWidthTriggerStyle` | Style for the special trigger when `collapsedWidth` is `0` | object | - |
+| `onCollapse` | Called when collapsed state changes | `(collapsed: boolean, type: string) => void` | - |
+| `onBreakpoint` | Called when viewport crosses the breakpoint | `(broken: boolean) => void` | - |
+
+#### Breakpoint widths
+
+```
+xs:   480px
+sm:   576px
+md:   768px
+lg:   992px
+xl:   1200px
+xxl:  1600px
+xxxl: 1920px
+```

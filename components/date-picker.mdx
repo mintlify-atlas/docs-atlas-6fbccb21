@@ -1,0 +1,240 @@
+---
+title: "DatePicker: Popup Calendar Date and Range Selection in React"
+description: "Ant Design DatePicker lets users pick dates, times, weeks, months, or ranges from a popup calendar using Day.js for formatting and locale support."
+---
+
+`DatePicker` opens a popup calendar when the user clicks the input. It uses [Day.js](https://day.js.org/) for date manipulation and formatting. Choose the appropriate picker type for your use case: `DatePicker` for a single day, `DatePicker[picker="month"]` for a month, or `DatePicker.RangePicker` for a date range.
+
+<Note>
+  The default locale is `en-US`. To use another locale, wrap your app with `ConfigProvider` and pass the appropriate locale from `antd/locale`. For date text (e.g., month names in the calendar header), also configure Day.js locale.
+</Note>
+
+## Basic usage
+
+Import `DatePicker` and use `onChange` to receive the selected Day.js object and formatted string.
+
+```tsx basic-date-picker.tsx
+import React from 'react';
+import { DatePicker, Space } from 'antd';
+import type { DatePickerProps } from 'antd';
+
+const onChange: DatePickerProps['onChange'] = (date, dateString) => {
+  console.log('Selected:', dateString); // e.g. "2024-03-15"
+  console.log('Day.js object:', date);
+};
+
+const BasicPickers: React.FC = () => (
+  <Space direction="vertical">
+    <DatePicker onChange={onChange} />
+    <DatePicker onChange={onChange} picker="week" />
+    <DatePicker onChange={onChange} picker="month" />
+    <DatePicker onChange={onChange} picker="quarter" />
+    <DatePicker onChange={onChange} picker="year" />
+  </Space>
+);
+
+export default BasicPickers;
+```
+
+## Common patterns
+
+### Controlled date picker
+
+Manage the selected date in state and set it programmatically using `value`. Pass `null` to clear.
+
+```tsx controlled-date-picker.tsx
+import React, { useState } from 'react';
+import { Button, DatePicker, Space } from 'antd';
+import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
+
+const ControlledPicker: React.FC = () => {
+  const [date, setDate] = useState<Dayjs | null>(null);
+
+  return (
+    <Space>
+      <DatePicker
+        value={date}
+        onChange={(d) => setDate(d)}
+        placeholder="Select date"
+      />
+      <Button onClick={() => setDate(dayjs())}>Set to today</Button>
+      <Button onClick={() => setDate(null)}>Clear</Button>
+    </Space>
+  );
+};
+```
+
+### Date range picker
+
+`DatePicker.RangePicker` renders two inputs linked by a shared calendar. Use `onChange` to receive the `[start, end]` pair.
+
+```tsx range-picker.tsx
+import React from 'react';
+import { DatePicker } from 'antd';
+import type { RangePickerProps } from 'antd/es/date-picker';
+
+const { RangePicker } = DatePicker;
+
+const onRangeChange: RangePickerProps['onChange'] = (dates, dateStrings) => {
+  if (dates) {
+    console.log('Start:', dateStrings[0], 'End:', dateStrings[1]);
+  }
+};
+
+const RangeExample: React.FC = () => (
+  <RangePicker
+    onChange={onRangeChange}
+    presets={[
+      { label: 'Last 7 days', value: [dayjs().subtract(7, 'd'), dayjs()] },
+      { label: 'Last 30 days', value: [dayjs().subtract(30, 'd'), dayjs()] },
+    ]}
+  />
+);
+```
+
+### With time selection
+
+Add `showTime` to include a time picker panel alongside the date calendar. Format with `format` to include hours and minutes.
+
+```tsx date-time-picker.tsx
+import React from 'react';
+import { DatePicker } from 'antd';
+import dayjs from 'dayjs';
+
+const DateTimePicker: React.FC = () => (
+  <DatePicker
+    showTime
+    format="YYYY-MM-DD HH:mm:ss"
+    placeholder="Select date and time"
+    onChange={(date, dateString) => console.log(dateString)}
+  />
+);
+```
+
+### Disabling dates
+
+Use `disabledDate` to prevent selection of specific dates. The function receives the candidate date and returns `true` to disable it.
+
+```tsx disabled-dates.tsx
+import React from 'react';
+import { DatePicker } from 'antd';
+import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
+
+const disabledDate = (current: Dayjs): boolean => {
+  // Disable any date before today
+  return current < dayjs().startOf('day');
+};
+
+const FutureDatePicker: React.FC = () => (
+  <DatePicker
+    disabledDate={disabledDate}
+    placeholder="Future dates only"
+  />
+);
+```
+
+### Preset ranges
+
+Supply a `presets` array to `RangePicker` or `DatePicker` for quick-selection shortcuts shown in the panel footer.
+
+```tsx preset-ranges.tsx
+import React from 'react';
+import { DatePicker } from 'antd';
+import dayjs from 'dayjs';
+
+const { RangePicker } = DatePicker;
+
+const PresetsExample: React.FC = () => (
+  <RangePicker
+    presets={[
+      { label: 'This week', value: [dayjs().startOf('week'), dayjs().endOf('week')] },
+      { label: 'This month', value: [dayjs().startOf('month'), dayjs().endOf('month')] },
+      { label: 'Last quarter', value: [dayjs().subtract(1, 'quarter').startOf('quarter'), dayjs().subtract(1, 'quarter').endOf('quarter')] },
+    ]}
+  />
+);
+```
+
+### Inside a Form
+
+When using `DatePicker` inside `Form.Item`, the form provides the `value` prop. Day.js objects serialize correctly when `onFinish` fires.
+
+```tsx form-date-picker.tsx
+import React from 'react';
+import { Button, DatePicker, Form } from 'antd';
+import dayjs from 'dayjs';
+
+const EventForm: React.FC = () => {
+  const [form] = Form.useForm();
+
+  return (
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={(values) => {
+        console.log('Date:', values.eventDate?.format('YYYY-MM-DD'));
+      }}
+    >
+      <Form.Item
+        name="eventDate"
+        label="Event date"
+        rules={[{ required: true, message: 'Please select a date.' }]}
+      >
+        <DatePicker
+          style={{ width: '100%' }}
+          disabledDate={(d) => d < dayjs().startOf('day')}
+        />
+      </Form.Item>
+      <Form.Item>
+        <Button type="primary" htmlType="submit">Create event</Button>
+      </Form.Item>
+    </Form>
+  );
+};
+```
+
+## Common API (DatePicker and RangePicker)
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `value` | Controlled date value | `Dayjs` | — |
+| `defaultValue` | Uncontrolled initial value | `Dayjs` | — |
+| `format` | Display format. See [Day.js format tokens](https://day.js.org/docs/en/display/format) | `string \| string[]` | `YYYY-MM-DD` |
+| `picker` | Type of picker panel | `date` \| `week` \| `month` \| `quarter` \| `year` | `date` |
+| `placeholder` | Placeholder text | `string` | — |
+| `disabled` | Disable the picker | `boolean` | `false` |
+| `allowClear` | Show a clear button | `boolean \| { clearIcon: ReactNode }` | `true` |
+| `disabledDate` | Disable specific dates | `(current: Dayjs, info) => boolean` | — |
+| `showTime` | Add a time selection panel | `boolean \| TimePicker options` | — |
+| `size` | Input size | `large` \| `medium` \| `small` | — |
+| `status` | Validation status style | `'error'` \| `'warning'` | — |
+| `variant` | Border style | `outlined` \| `borderless` \| `filled` \| `underlined` | `outlined` |
+| `presets` | Quick-selection shortcuts in the panel footer | `{ label: ReactNode, value: Dayjs \| (() => Dayjs) }[]` | — |
+| `open` | Controlled open state | `boolean` | — |
+| `placement` | Popup position | `bottomLeft` \| `bottomRight` \| `topLeft` \| `topRight` | `bottomLeft` |
+| `inputReadOnly` | Prevent virtual keyboard on touch devices | `boolean` | `false` |
+| `minDate` / `maxDate` | Constrain selectable date range and panel navigation | `Dayjs` | — |
+| `locale` | Per-instance locale object | `object` | `en-US` |
+| `onChange` | Called when the selected date changes | `(date: Dayjs \| null, dateString: string \| null) => void` | — |
+| `onOpenChange` | Called when the popup opens or closes | `(open: boolean) => void` | — |
+
+## RangePicker additional props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `value` | Controlled range value | `[Dayjs, Dayjs]` | — |
+| `defaultValue` | Uncontrolled initial range | `[Dayjs, Dayjs]` | — |
+| `allowEmpty` | Allow start or end to be empty | `[boolean, boolean]` | `[false, false]` |
+| `separator` | Node rendered between the two inputs | `ReactNode` | `<SwapRightOutlined />` |
+| `onChange` | Called when the range changes | `(dates: [Dayjs, Dayjs] \| null, dateStrings: [string, string] \| null) => void` | — |
+| `onCalendarChange` | Called as the user selects start or end | `(dates, dateStrings, info) => void` | — |
+
+<Warning>
+  Day.js locale configuration must be set before the component renders. If you configure `dayjs.locale()` globally, import the relevant Day.js locale file (e.g., `dayjs/locale/zh-cn`) alongside the Ant Design locale file. Without both, calendar text and the selected value format may not match.
+</Warning>
+
+<Tip>
+  Store date values as Day.js objects in form state, not as formatted strings. Convert to strings only at the point of API submission using `dayjs.format()`. This avoids round-trip parsing bugs when the format changes.
+</Tip>

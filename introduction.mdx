@@ -1,0 +1,94 @@
+---
+title: "Ant Design: Enterprise React UI Component Library"
+description: "An overview of Ant Design (antd), a TypeScript-first React library with 80+ components, CSS-in-JS theming, dark mode, RTL, and SSR support."
+---
+
+Ant Design (`antd`) is an enterprise-class React UI library built on the Ant Design specification. It provides a comprehensive set of high-quality components and design resources for building rich, interactive web applications. This page covers what Ant Design is, its key features, the design principles behind it, and where to go next.
+
+## What is Ant Design?
+
+Ant Design is a design language and component system developed and maintained by Alibaba's Ant Group. The React implementation — the `antd` npm package — ships over 80 production-ready components that cover everything from basic inputs and layout primitives to complex data displays, feedback overlays, and navigation patterns.
+
+The library is TypeScript-first: all components export their prop types directly from `antd`, so you never need to install a separate `@types/antd` package.
+
+The current stable release is **v6**, which requires React 18 or above and targets modern browsers. CSS variables are enabled by default; Internet Explorer is not supported.
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="CSS-in-JS theming" icon="palette">
+    A design token system built on `@ant-design/cssinjs` lets you override any visual detail — colors, radii, spacing — at the global or component level without writing CSS files.
+  </Card>
+  <Card title="Dark and compact modes" icon="moon">
+    Built-in `theme.darkAlgorithm` and `theme.compactAlgorithm` presets switch the entire application between light, dark, and compact densities with a single config change.
+  </Card>
+  <Card title="RTL layout support" icon="arrows-left-right">
+    Pass `direction="rtl"` to `ConfigProvider` to mirror every component for right-to-left languages without any additional CSS.
+  </Card>
+  <Card title="i18n — 74+ languages" icon="globe">
+    A locale prop on `ConfigProvider` applies translated strings across all components simultaneously. Community locale files ship inside the package.
+  </Card>
+  <Card title="Server-side rendering" icon="server">
+    Ant Design supports SSR out of the box. The `StyleProvider` from `@ant-design/cssinjs` handles style extraction for frameworks like Next.js.
+  </Card>
+  <Card title="TypeScript-first" icon="code">
+    Every component ships with built-in TypeScript definitions. Prop types, event handler signatures, and token interfaces are all exported for use in your own code.
+  </Card>
+  <Card title="React 18+ compatible" icon="atom">
+    v6 is built for React 18 and above. Concurrent rendering, automatic batching, and React 19 are all supported without compatibility patches.
+  </Card>
+  <Card title="Tree-shakeable ES modules" icon="scissors">
+    `antd` supports ES module tree shaking by default. Importing named exports like `import { Button } from 'antd'` drops all unused component code from your bundle.
+  </Card>
+</CardGroup>
+
+## Environment support
+
+Ant Design targets modern browsers. The last two versions of Edge, Firefox, Chrome, Safari, and Opera are supported, as is Electron.
+
+| Browser  | Supported versions |
+| -------- | ------------------ |
+| Edge     | Last 2 versions    |
+| Firefox  | Last 2 versions    |
+| Chrome   | Last 2 versions    |
+| Safari   | Last 2 versions    |
+| Opera    | Last 2 versions    |
+| Electron | Last 2 versions    |
+
+<Note>
+  Internet Explorer support was dropped in v5. React 16/17 support was dropped in v6. If you are on an older version of antd, consult the corresponding documentation branch.
+</Note>
+
+## Design principles
+
+Ant Design's visual and interaction language is grounded in four principles drawn from the official specification:
+
+**Natural** — Interfaces should feel intuitive. Animation timing, whitespace, and hierarchy should match users' mental models and reduce cognitive load.
+
+**Certain** — Feedback must be clear and immediate. Every action should produce a predictable, unambiguous response so users can proceed with confidence.
+
+**Meaningful** — Every design decision should serve a purpose. Decoration for its own sake is removed; form follows function.
+
+**Growing** — The system is built to evolve. Components, tokens, and patterns are designed to compose well and scale from small projects to complex enterprise applications.
+
+## Ecosystem
+
+Ant Design is the foundation for a wider ecosystem of tools and libraries:
+
+- **Ant Design Pro** — An out-of-the-box admin template built on antd, with layouts, charts, and authentication patterns.
+- **Pro Components** — Higher-level components (ProTable, ProForm, ProLayout) that encapsulate common enterprise patterns.
+- **Ant Design Mobile** — A mobile-oriented component library following the same design language.
+- **Ant Design Charts** — A chart library built on G2 with antd-compatible theming.
+- **Ant Design Icons** — The official icon set, available as individual React components.
+- **Ant Design X** — An AI-interaction component set for building LLM-powered interfaces.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Install antd and render your first component in under five minutes.
+  </Card>
+  <Card title="Migrate from v5" icon="circle-arrow-up" href="/migration-v6">
+    Upgrading an existing project? Read the v5-to-v6 migration guide.
+  </Card>
+</CardGroup>

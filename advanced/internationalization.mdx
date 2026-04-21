@@ -1,0 +1,227 @@
+---
+title: "Internationalization in Ant Design with ConfigProvider"
+description: "Configure Ant Design's built-in text and date formats for 70+ locales using ConfigProvider, with guidance on Dayjs locale setup and RTL support."
+---
+
+Ant Design ships with English (`en_US`) as its default language. Every piece of built-in text — pagination labels, date picker captions, form validation messages, and more — is controlled through a single `locale` prop on `ConfigProvider`. This page explains how to switch languages, which locales are included, and how to align your date library's locale with Ant Design's.
+
+## Basic setup
+
+Wrap your application (or any sub-tree) with `ConfigProvider` and pass the locale object you want to use.
+
+```tsx
+import { ConfigProvider } from 'antd';
+import frFR from 'antd/locale/fr_FR';
+
+const App: React.FC = () => (
+  <ConfigProvider locale={frFR}>
+    <MyApp />
+  </ConfigProvider>
+);
+
+export default App;
+```
+
+Locale files live under `antd/locale/` and follow the `{language}_{REGION}` naming convention — for example `fr_FR`, `zh_CN`, `ar_EG`.
+
+## Switching locales at runtime
+
+Because `ConfigProvider` is a React component, you can bind `locale` to state and update it dynamically.
+
+```tsx
+import React, { useState } from 'react';
+import { Button, ConfigProvider, DatePicker, Space } from 'antd';
+import enUS from 'antd/locale/en_US';
+import zhCN from 'antd/locale/zh_CN';
+
+const locales = {
+  'en-US': enUS,
+  'zh-CN': zhCN,
+};
+
+const App: React.FC = () => {
+  const [locale, setLocale] = useState<keyof typeof locales>('en-US');
+
+  return (
+    <ConfigProvider locale={locales[locale]}>
+      <Space direction="vertical">
+        <Space>
+          <Button onClick={() => setLocale('en-US')}>English</Button>
+          <Button onClick={() => setLocale('zh-CN')}>中文</Button>
+        </Space>
+        <DatePicker />
+      </Space>
+    </ConfigProvider>
+  );
+};
+
+export default App;
+```
+
+## Aligning Dayjs locale
+
+Ant Design uses [Day.js](https://day.js.org) for date formatting. The Ant Design locale controls component labels, but Day.js has its own locale setting that controls how dates are formatted (weekday names, month abbreviations, etc.). You need to set both.
+
+<Steps>
+  <Step title="Import the Dayjs locale plugin">
+    Dayjs locales are loaded on demand. Import the locale you need before using any date components.
+
+    ```tsx
+    import 'dayjs/locale/fr';
+    import dayjs from 'dayjs';
+
+    dayjs.locale('fr');
+    ```
+  </Step>
+  <Step title="Pass the Ant Design locale to ConfigProvider">
+    ```tsx
+    import { ConfigProvider, DatePicker } from 'antd';
+    import frFR from 'antd/locale/fr_FR';
+    import 'dayjs/locale/fr';
+    import dayjs from 'dayjs';
+
+    dayjs.locale('fr');
+
+    const App: React.FC = () => (
+      <ConfigProvider locale={frFR}>
+        <DatePicker />
+      </ConfigProvider>
+    );
+
+    export default App;
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+  The Dayjs locale identifier (e.g. `'fr'`) does not always match the Ant Design filename (e.g. `fr_FR`). Check the [Dayjs locale list](https://day.js.org/docs/en/i18n/list-of-locales) for the correct identifier for your target language.
+</Tip>
+
+## Supported locales
+
+The table below lists every built-in locale. Import a locale from `antd/locale/<Filename>`.
+
+| Language | Filename |
+|----------|----------|
+| Arabic | `ar_EG` |
+| Azerbaijani | `az_AZ` |
+| Bulgarian | `bg_BG` |
+| Bangla (Bangladesh) | `bn_BD` |
+| Belarusian | `by_BY` |
+| Catalan | `ca_ES` |
+| Czech | `cs_CZ` |
+| Danish | `da_DK` |
+| German | `de_DE` |
+| Greek | `el_GR` |
+| English (United Kingdom) | `en_GB` |
+| English | `en_US` |
+| Spanish | `es_ES` |
+| Basque | `eu_ES` |
+| Estonian | `et_EE` |
+| Persian | `fa_IR` |
+| Finnish | `fi_FI` |
+| French (Belgium) | `fr_BE` |
+| French (Canada) | `fr_CA` |
+| French (France) | `fr_FR` |
+| Irish (Ireland) | `ga_IE` |
+| Galician (Spain) | `gl_ES` |
+| Hebrew | `he_IL` |
+| Hindi | `hi_IN` |
+| Croatian | `hr_HR` |
+| Hungarian | `hu_HU` |
+| Armenian | `hy_AM` |
+| Indonesian | `id_ID` |
+| Italian | `it_IT` |
+| Icelandic | `is_IS` |
+| Japanese | `ja_JP` |
+| Georgian | `ka_GE` |
+| Kurdish (Kurmanji) | `kmr_IQ` |
+| Kannada | `kn_IN` |
+| Kazakh | `kk_KZ` |
+| Khmer | `km_KH` |
+| Korean | `ko_KR` |
+| Lithuanian | `lt_LT` |
+| Latvian | `lv_LV` |
+| Macedonian | `mk_MK` |
+| Malayalam (India) | `ml_IN` |
+| Marathi (India) | `mr_IN` |
+| Mongolian | `mn_MN` |
+| Malay (Malaysia) | `ms_MY` |
+| Burmese | `my_MM` |
+| Norwegian | `nb_NO` |
+| Nepali | `ne_NP` |
+| Dutch (Belgium) | `nl_BE` |
+| Dutch | `nl_NL` |
+| Polish | `pl_PL` |
+| Portuguese (Brazil) | `pt_BR` |
+| Portuguese | `pt_PT` |
+| Romanian | `ro_RO` |
+| Russian | `ru_RU` |
+| Sinhalese / Sinhala | `si_LK` |
+| Slovak | `sk_SK` |
+| Serbian | `sr_RS` |
+| Slovenian | `sl_SI` |
+| Swedish | `sv_SE` |
+| Tamil | `ta_IN` |
+| Thai | `th_TH` |
+| Turkish | `tr_TR` |
+| Turkmen | `tk_TK` |
+| Urdu (Pakistan) | `ur_PK` |
+| Ukrainian | `uk_UA` |
+| Uzbek (Latin) | `uz_UZ` |
+| Vietnamese | `vi_VN` |
+| Chinese (Simplified) | `zh_CN` |
+| Chinese (Traditional, Hong Kong) | `zh_HK` |
+| Chinese (Traditional, Taiwan) | `zh_TW` |
+
+## RTL locales
+
+Arabic (`ar_EG`), Hebrew (`he_IL`), and Persian (`fa_IR`) are right-to-left languages. Ant Design supports RTL layout through the `direction` prop on `ConfigProvider`. Set it to `"rtl"` alongside the locale to flip the layout direction of all components.
+
+```tsx
+import { ConfigProvider } from 'antd';
+import arEG from 'antd/locale/ar_EG';
+
+const App: React.FC = () => (
+  <ConfigProvider locale={arEG} direction="rtl">
+    <MyApp />
+  </ConfigProvider>
+);
+
+export default App;
+```
+
+<Note>
+  Ant Design locale objects control component labels only. They do not include plural form logic. Components that display counts (for example, Pagination's total display) use simple string templates. If your language requires complex plural rules, you may need to supply a custom `renderItem` or `showTotal` prop on those components.
+</Note>
+
+## Adding a new language
+
+If your language is not in the list above, you can contribute it to the Ant Design repository.
+
+<Steps>
+  <Step title="Fork the repository and create a branch">
+    ```bash
+    git clone git@github.com:<your-org>/ant-design.git
+    cd ant-design/
+    git remote add upstream git@github.com:ant-design/ant-design.git
+    git checkout -b feat/locale-xx_XX upstream/feature
+    ```
+  </Step>
+  <Step title="Add locale support to RC component libraries">
+    Add locale files for `@rc-component/picker` and `@rc-component/pagination`, referencing the existing `en_US` files in those packages as templates. Wait for new versions of those packages to be released before continuing.
+  </Step>
+  <Step title="Add the locale file to antd">
+    Base your new file on `components/locale/en_US.ts`. Update `@rc-component/picker` and `@rc-component/pagination` to their new versions in `antd`, then add any remaining strings.
+  </Step>
+  <Step title="Add a test case">
+    Add coverage for the new locale in `components/locale/__tests__/index.test.tsx`, then update snapshots:
+
+    ```bash
+    npm run test -- components/locale -u
+    ```
+  </Step>
+  <Step title="Update the i18n documentation">
+    Add the language to both `docs/react/i18n.en-US.md` and `docs/react/i18n.zh-CN.md`, then open a pull request.
+  </Step>
+</Steps>

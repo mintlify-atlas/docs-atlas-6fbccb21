@@ -1,24 +1,11 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
-  "name": "Ant Design",
+  "projectType": "sdk-library",
+  "projectName": "Ant Design",
+  "projectDescription": "An enterprise-class React UI component library implementing the Ant Design language with 80+ components, CSS-in-JS theming, dark mode, RTL support, and internationalization for 150+ locales.",
   "theme": "willow",
-  "colors": {
-    "primary": "#198ffb",
-    "light": "#f74855",
-    "dark": "#eff3f5"
-  },
-  "favicon": "https://media.brand.dev/9e6096ef-b0b1-459a-89a0-224ab97268b1.png",
-  "navbar": {
-    "primary": {
-      "type": "github",
-      "href": "https://github.com/ant-design/ant-design"
-    }
-  },
-  "footer": {
-    "socials": {
-      "github": "https://github.com/ant-design/ant-design"
-    }
-  },
+  "primaryColor": "#198ffb",
+  "lightColor": "#f74855",
+  "darkColor": "#eff3f5",
   "navigation": {
     "tabs": [
       {
@@ -133,5 +120,39 @@
         ]
       }
     ]
-  }
+  },
+  "keyFeatures": [
+    "80+ production-ready React components",
+    "CSS-in-JS theming with Design Token system",
+    "Dark mode and compact mode via preset algorithms",
+    "RTL (right-to-left) layout support",
+    "Internationalization for 150+ languages",
+    "Server-side rendering (SSR) support",
+    "TypeScript-first with full type definitions",
+    "Tree-shakeable ES module builds",
+    "Accessible components (WCAG compliant)",
+    "Compatible with React 18+"
+  ],
+  "publicApiSurface": [
+    "Button",
+    "Input",
+    "Form",
+    "Table",
+    "Select",
+    "Modal",
+    "DatePicker",
+    "ConfigProvider",
+    "theme.defaultAlgorithm",
+    "theme.darkAlgorithm",
+    "theme.compactAlgorithm",
+    "theme.useToken",
+    "message",
+    "notification",
+    "Drawer",
+    "Menu",
+    "Tabs",
+    "Tree",
+    "Upload",
+    "Typography"
+  ]
 }

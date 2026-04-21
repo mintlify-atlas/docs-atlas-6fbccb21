@@ -1,0 +1,251 @@
+---
+title: "Tree: Display hierarchical data structures"
+description: "Use the Ant Design Tree component to render expandable, selectable, and checkable node hierarchies such as file systems, org charts, or nested categories."
+---
+
+The `Tree` component renders a multi-level collapsible structure. It is the right choice for any data with a parent-child hierarchy: file directories, organisation charts, location taxonomies, permission trees, and more. Nodes can be selected, checked, expanded, and dragged. A `DirectoryTree` variant adds file-system-style icons and click-to-expand behaviour.
+
+## Installation
+
+```bash
+npm install antd
+```
+
+## Basic usage
+
+Pass a `treeData` array where each node has a `key`, a `title`, and an optional `children` array. Use `defaultExpandedKeys` to pre-expand specific nodes.
+
+```tsx basic-tree.tsx
+import React from 'react';
+import { Tree } from 'antd';
+import type { TreeDataNode, TreeProps } from 'antd';
+
+const treeData: TreeDataNode[] = [
+  {
+    title: 'Engineering',
+    key: 'eng',
+    children: [
+      {
+        title: 'Frontend',
+        key: 'eng-fe',
+        children: [
+          { title: 'React', key: 'eng-fe-react' },
+          { title: 'TypeScript', key: 'eng-fe-ts' },
+        ],
+      },
+      {
+        title: 'Backend',
+        key: 'eng-be',
+        children: [
+          { title: 'Node.js', key: 'eng-be-node' },
+          { title: 'PostgreSQL', key: 'eng-be-pg' },
+        ],
+      },
+    ],
+  },
+  {
+    title: 'Design',
+    key: 'design',
+    children: [
+      { title: 'UI', key: 'design-ui' },
+      { title: 'UX Research', key: 'design-ux' },
+    ],
+  },
+];
+
+export default function BasicTree() {
+  const onSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
+    console.log('Selected:', selectedKeys, info.node.title);
+  };
+
+  return (
+    <Tree
+      defaultExpandedKeys={['eng', 'eng-fe']}
+      onSelect={onSelect}
+      treeData={treeData}
+    />
+  );
+}
+```
+
+## Checkable tree
+
+Set `checkable` to add checkboxes to every node. Check state propagates to parent and child nodes automatically. Use `defaultCheckedKeys` for uncontrolled initial state or `checkedKeys` for controlled state.
+
+```tsx checkable-tree.tsx
+import React, { useState } from 'react';
+import { Tree } from 'antd';
+import type { TreeDataNode } from 'antd';
+
+const permissions: TreeDataNode[] = [
+  {
+    title: 'Users',
+    key: 'users',
+    children: [
+      { title: 'View users', key: 'users:read' },
+      { title: 'Create users', key: 'users:create' },
+      { title: 'Delete users', key: 'users:delete' },
+    ],
+  },
+  {
+    title: 'Reports',
+    key: 'reports',
+    children: [
+      { title: 'View reports', key: 'reports:read' },
+      { title: 'Export reports', key: 'reports:export' },
+    ],
+  },
+];
+
+export default function CheckableTree() {
+  const [checkedKeys, setCheckedKeys] = useState<React.Key[]>(['users:read', 'reports:read']);
+
+  return (
+    <Tree
+      checkable
+      checkedKeys={checkedKeys}
+      onCheck={(keys) => setCheckedKeys(keys as React.Key[])}
+      treeData={permissions}
+      defaultExpandAll
+    />
+  );
+}
+```
+
+<Note>
+  When `checkable` is `true`, checking a parent automatically checks all children, and checking all children automatically checks the parent. To disable this association and control check state independently per node, set `checkStrictly`.
+</Note>
+
+## Controlled expansion
+
+Use `expandedKeys` and `onExpand` together for fully controlled expand/collapse behaviour. This is useful when you need to programmatically open specific nodes in response to search or other interactions.
+
+```tsx controlled-tree.tsx
+import React, { useState } from 'react';
+import { Button, Space, Tree } from 'antd';
+import type { TreeDataNode } from 'antd';
+
+const data: TreeDataNode[] = [
+  {
+    title: 'Level 1',
+    key: '1',
+    children: [
+      {
+        title: 'Level 2-A',
+        key: '1-1',
+        children: [
+          { title: 'Level 3-A', key: '1-1-1' },
+          { title: 'Level 3-B', key: '1-1-2' },
+        ],
+      },
+      { title: 'Level 2-B', key: '1-2' },
+    ],
+  },
+];
+
+const allKeys = ['1', '1-1'];
+
+export default function ControlledTree() {
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
+
+  return (
+    <Space direction="vertical">
+      <Space>
+        <Button onClick={() => setExpandedKeys(allKeys)}>Expand all</Button>
+        <Button onClick={() => setExpandedKeys([])}>Collapse all</Button>
+      </Space>
+      <Tree
+        treeData={data}
+        expandedKeys={expandedKeys}
+        onExpand={(keys) => setExpandedKeys(keys)}
+      />
+    </Space>
+  );
+}
+```
+
+## Directory tree
+
+Use `Tree.DirectoryTree` for a file-explorer style variant with folder and file icons. Clicking a folder node toggles expansion by default.
+
+```tsx directory-tree.tsx
+import React from 'react';
+import { Tree } from 'antd';
+import type { TreeDataNode } from 'antd';
+
+const { DirectoryTree } = Tree;
+
+const files: TreeDataNode[] = [
+  {
+    title: 'src',
+    key: 'src',
+    children: [
+      {
+        title: 'components',
+        key: 'src/components',
+        children: [
+          { title: 'Button.tsx', key: 'src/components/Button.tsx', isLeaf: true },
+          { title: 'Input.tsx', key: 'src/components/Input.tsx', isLeaf: true },
+        ],
+      },
+      { title: 'index.tsx', key: 'src/index.tsx', isLeaf: true },
+    ],
+  },
+  { title: 'package.json', key: 'package.json', isLeaf: true },
+];
+
+export default function DirectoryTreeExample() {
+  return (
+    <DirectoryTree
+      defaultExpandAll
+      treeData={files}
+      onSelect={(keys, info) => console.log('Selected file:', info.node.title)}
+    />
+  );
+}
+```
+
+## Tree props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `treeData` | `TreeDataNode[]` | - | Node data; each node requires `key` and `title` |
+| `checkable` | `boolean` | `false` | Add checkboxes to nodes |
+| `checkedKeys` | `Key[] \| { checked: Key[], halfChecked: Key[] }` | `[]` | Controlled checked keys |
+| `defaultCheckedKeys` | `Key[]` | `[]` | Initial checked keys (uncontrolled) |
+| `expandedKeys` | `Key[]` | `[]` | Controlled expanded keys |
+| `defaultExpandedKeys` | `Key[]` | `[]` | Initial expanded keys (uncontrolled) |
+| `defaultExpandAll` | `boolean` | `false` | Expand all nodes on mount |
+| `selectedKeys` | `Key[]` | - | Controlled selected keys |
+| `defaultSelectedKeys` | `Key[]` | `[]` | Initial selected keys (uncontrolled) |
+| `multiple` | `boolean` | `false` | Allow multiple selection |
+| `selectable` | `boolean` | `true` | Enable node selection |
+| `checkStrictly` | `boolean` | `false` | Decouple parent/child check state |
+| `draggable` | `boolean \| function \| DraggableConfig` | `false` | Allow drag-and-drop reordering |
+| `showLine` | `boolean \| { showLeafIcon }` | `false` | Draw connecting lines between nodes |
+| `showIcon` | `boolean` | `false` | Show the `icon` on each node |
+| `blockNode` | `boolean` | `false` | Node fills the full row width |
+| `fieldNames` | `{ title, key, children }` | defaults | Map custom data keys to tree fields |
+| `loadData` | `(node) => Promise` | - | Async node loading function |
+| `height` | `number` | - | Enable virtual scrolling at this height |
+| `onSelect` | `(keys, info) => void` | - | Fired when a node is selected |
+| `onCheck` | `(keys, info) => void` | - | Fired when a checkbox changes |
+| `onExpand` | `(keys, info) => void` | - | Fired when a node is expanded or collapsed |
+| `onDrop` | `(info) => void` | - | Fired when a drag-and-drop completes |
+
+## TreeNode props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `key` | `string` | - | Unique node identifier (required) |
+| `title` | `ReactNode` | - | Node label |
+| `children` | `TreeDataNode[]` | - | Child nodes |
+| `disabled` | `boolean` | `false` | Disable the node |
+| `disableCheckbox` | `boolean` | `false` | Disable the checkbox while leaving the node clickable |
+| `isLeaf` | `boolean` | - | Force leaf node (no expand icon) |
+| `selectable` | `boolean` | `true` | Allow this node to be selected |
+| `icon` | `ReactNode \| (props) => ReactNode` | - | Custom node icon |
+
+<Warning>
+  `defaultExpandAll` only runs during the initial render. If your tree data is loaded asynchronously, nodes added after mount will not be expanded automatically. Use `expandedKeys` in controlled mode instead.
+</Warning>

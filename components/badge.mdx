@@ -1,0 +1,201 @@
+---
+title: "Badge: Overlay counts and status indicators on elements"
+description: "Use the Ant Design Badge component to show a count, dot, or status indicator overlaid on another element such as an icon, avatar, or button."
+---
+
+The `Badge` component attaches a small visual indicator to its child element. The most common use case is a notification count on an icon, but badges are also used for unread message counts on avatars, processing-state dots on action items, and standalone status labels. A `Badge.Ribbon` sub-component adds a corner ribbon to a container.
+
+## Installation
+
+```bash
+npm install antd
+```
+
+## Basic usage
+
+Wrap any element with `<Badge>` and set `count` to show a numeric indicator in the top-right corner. The count is capped at `overflowCount` (default 99) and displayed as `99+` when exceeded.
+
+```tsx basic-badge.tsx
+import React from 'react';
+import { Avatar, Badge, Space } from 'antd';
+
+export default function BasicBadge() {
+  return (
+    <Space size="large">
+      <Badge count={5}>
+        <Avatar shape="square" size="large" />
+      </Badge>
+      <Badge count={0} showZero>
+        <Avatar shape="square" size="large" />
+      </Badge>
+      <Badge count={120} overflowCount={99}>
+        <Avatar shape="square" size="large" />
+      </Badge>
+    </Space>
+  );
+}
+```
+
+## Dot badge
+
+Set `dot` to render a plain red dot instead of a count number. Use this when the presence of a notification matters but the exact count does not.
+
+```tsx dot-badge.tsx
+import React from 'react';
+import { BellOutlined, MessageOutlined, SettingOutlined } from '@ant-design/icons';
+import { Badge, Space } from 'antd';
+
+export default function DotBadge() {
+  return (
+    <Space size="large">
+      <Badge dot>
+        <BellOutlined style={{ fontSize: 22 }} />
+      </Badge>
+      <Badge dot>
+        <MessageOutlined style={{ fontSize: 22 }} />
+      </Badge>
+      <Badge dot count={0}>
+        {/* dot is hidden when count is 0 */}
+        <SettingOutlined style={{ fontSize: 22 }} />
+      </Badge>
+    </Space>
+  );
+}
+```
+
+## Status badges
+
+Use `status` to render a standalone coloured dot with optional `text`. This is useful for legend items, status rows in tables, or inline state labels without wrapping another element.
+
+```tsx status-badge.tsx
+import React from 'react';
+import { Badge, Space } from 'antd';
+
+export default function StatusBadge() {
+  return (
+    <Space direction="vertical">
+      <Badge status="success" text="Deployed" />
+      <Badge status="processing" text="Building" />
+      <Badge status="error" text="Failed" />
+      <Badge status="warning" text="Degraded" />
+      <Badge status="default" text="Idle" />
+    </Space>
+  );
+}
+```
+
+## Colourful badges
+
+Set a custom `color` using any CSS colour string or a preset Ant Design colour name to create branded badge indicators.
+
+```tsx colourful-badge.tsx
+import React from 'react';
+import { Avatar, Badge, Space } from 'antd';
+
+const colours = ['pink', 'red', 'yellow', 'orange', 'cyan', 'green', 'blue', 'purple'];
+
+export default function ColourfulBadge() {
+  return (
+    <Space wrap size="large">
+      {colours.map((color) => (
+        <Badge key={color} color={color} count={1}>
+          <Avatar shape="square" size="large" style={{ background: '#eee' }}>
+            {color[0].toUpperCase()}
+          </Avatar>
+        </Badge>
+      ))}
+    </Space>
+  );
+}
+```
+
+## Badge.Ribbon
+
+`Badge.Ribbon` places a ribbon in the top corner of a container, useful for tagging cards or panels with a prominent label such as "New" or "Sale".
+
+```tsx ribbon-badge.tsx
+import React from 'react';
+import { Badge, Card, Space } from 'antd';
+
+export default function RibbonBadge() {
+  return (
+    <Space direction="vertical" style={{ width: '100%' }}>
+      <Badge.Ribbon text="New" color="blue">
+        <Card title="Pro plan" size="small">
+          Everything in Starter, plus advanced analytics.
+        </Card>
+      </Badge.Ribbon>
+      <Badge.Ribbon text="Popular" color="volcano" placement="start">
+        <Card title="Team plan" size="small">
+          Collaboration tools and shared workspaces.
+        </Card>
+      </Badge.Ribbon>
+    </Space>
+  );
+}
+```
+
+<Note>
+  `placement="start"` places the ribbon on the left in LTR layouts and on the right in RTL layouts, following the text direction of the page.
+</Note>
+
+## Dynamic count
+
+Animate count changes by updating the `count` prop. The scroll-number animation plays automatically when the value changes.
+
+```tsx dynamic-badge.tsx
+import React, { useState } from 'react';
+import { MinusOutlined, PlusOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { Badge, Button, Space } from 'antd';
+
+export default function DynamicBadge() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <Space size="large" align="center">
+      <Badge count={count} showZero>
+        <ShoppingCartOutlined style={{ fontSize: 28 }} />
+      </Badge>
+      <Button.Group>
+        <Button
+          icon={<MinusOutlined />}
+          onClick={() => setCount((c) => Math.max(0, c - 1))}
+        />
+        <Button
+          icon={<PlusOutlined />}
+          onClick={() => setCount((c) => c + 1)}
+        />
+      </Button.Group>
+    </Space>
+  );
+}
+```
+
+## Badge props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `count` | `ReactNode` | - | Number or custom node to display |
+| `dot` | `boolean` | `false` | Show a plain dot instead of a count |
+| `showZero` | `boolean` | `false` | Show the badge when `count` is 0 |
+| `overflowCount` | `number` | `99` | Cap value; exceeded counts render as `99+` |
+| `status` | `"success" \| "processing" \| "default" \| "error" \| "warning"` | - | Render as a standalone status dot |
+| `color` | `string` | - | Custom dot colour (CSS colour or preset name) |
+| `text` | `ReactNode` | - | Text next to the status dot (requires `status`) |
+| `size` | `"medium" \| "small"` | `"medium"` | Badge indicator size |
+| `offset` | `[number, number]` | - | `[x, y]` offset of the badge relative to its anchor |
+| `title` | `string` | - | Tooltip shown on hover |
+| `classNames` | `BadgeClassNamesType` | - | Per-slot class name overrides |
+| `styles` | `BadgeStylesType` | - | Per-slot inline style overrides |
+
+## Badge.Ribbon props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `text` | `ReactNode` | - | Content inside the ribbon |
+| `color` | `string` | - | Ribbon colour (CSS colour or preset name) |
+| `placement` | `"start" \| "end"` | `"end"` | Corner to place the ribbon; follows text direction |
+
+<Warning>
+  Do not use `count` and `status` together on the same `Badge`. The `status` prop is only applied when `count` is not provided (or is `null`). If both are set, `status` is ignored.
+</Warning>

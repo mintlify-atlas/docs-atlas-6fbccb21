@@ -1,0 +1,159 @@
+---
+title: Breadcrumb — Ant Design Hierarchical Navigation Trail
+description: Show the user's location in a page hierarchy with Ant Design Breadcrumb. Supports dropdown menus, custom separators, icons, and React Router integration.
+---
+
+`Breadcrumb` renders a trail of links showing where the user is in a multi-level page hierarchy. It lets users navigate back to any ancestor level with a single click. Use it whenever your app has three or more hierarchy levels, or whenever the user needs spatial orientation within nested content such as settings panels, product categories, or file browsers.
+
+<Note>
+  Use the `items` prop (available since v5.3.0) rather than the legacy `<Breadcrumb.Item>` JSX children. The `items` API is simpler and receives better long-term support.
+</Note>
+
+## Basic usage
+
+```tsx
+import React from 'react';
+import { Breadcrumb } from 'antd';
+
+export default function App() {
+  return (
+    <Breadcrumb
+      items={[
+        { title: 'Home' },
+        { title: <a href="/app">Application Center</a> },
+        { title: <a href="/app/list">Application List</a> },
+        { title: 'An Application' },
+      ]}
+    />
+  );
+}
+```
+
+## With icons and dropdowns
+
+Items can include icons and a `menu` prop to render a dropdown of related routes directly in the breadcrumb trail.
+
+```tsx
+import React from 'react';
+import { HomeOutlined, UserOutlined } from '@ant-design/icons';
+import { Breadcrumb } from 'antd';
+
+export default function App() {
+  return (
+    <Breadcrumb
+      items={[
+        {
+          href: '/',
+          title: <HomeOutlined />,
+        },
+        {
+          title: (
+            <>
+              <UserOutlined />
+              <span>Application List</span>
+            </>
+          ),
+          menu: {
+            items: [
+              { key: '1', label: 'General' },
+              { key: '2', label: 'Layout' },
+              { key: '3', label: 'Navigation' },
+            ],
+          },
+        },
+        {
+          title: 'An Application',
+        },
+      ]}
+    />
+  );
+}
+```
+
+## Custom separator
+
+```tsx
+<Breadcrumb separator=">" items={items} />
+
+{/* Per-item separator using SeparatorType */}
+<Breadcrumb
+  items={[
+    { title: 'Home' },
+    { type: 'separator', separator: ':' },
+    { title: 'Application' },
+  ]}
+/>
+```
+
+<Tip>
+  Insert a `{ type: 'separator', separator: <MyIcon /> }` entry anywhere in the `items` array to place a custom separator between specific items without affecting the rest of the trail.
+</Tip>
+
+## Integration with React Router
+
+Use `itemRender` to replace the default `<a>` tags with router-aware `<Link>` components. This prevents full page reloads on breadcrumb navigation.
+
+```tsx
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Breadcrumb } from 'antd';
+
+const items = [
+  { path: '/index', title: 'Home' },
+  { path: '/first', title: 'First' },
+  { path: '/second', title: 'Second' },
+];
+
+function itemRender(currentRoute, params, allItems, paths) {
+  const isLast = currentRoute?.path === allItems[allItems.length - 1]?.path;
+
+  return isLast ? (
+    <span>{currentRoute.title}</span>
+  ) : (
+    <Link to={`/${paths.join('/')}`}>{currentRoute.title}</Link>
+  );
+}
+
+export default function App() {
+  return <Breadcrumb itemRender={itemRender} items={items} />;
+}
+```
+
+## Breadcrumb props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `items` | Ordered list of breadcrumb items | `ItemType[]` | — |
+| `separator` | Global separator between items | `ReactNode` | `'/'` |
+| `itemRender` | Custom renderer for each item | `(route, params, routes, paths) => ReactNode` | — |
+| `params` | Route parameters passed to `itemRender` | `object` | — |
+| `dropdownIcon` | Custom icon for items with a dropdown | `ReactNode` | `<DownOutlined />` |
+
+## RouteItemType props
+
+Each object in the `items` array can have the following shape:
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `title` | Display text or element | `ReactNode` | — |
+| `href` | Link target (cannot be used with `path`) | `string` | — |
+| `path` | Path segment, joined with previous segments (cannot be used with `href`) | `string` | — |
+| `menu` | Dropdown menu config | `MenuProps` | — |
+| `dropdownProps` | Additional props passed to the Dropdown wrapper | `DropdownProps` | — |
+| `onClick` | Click handler | `(e: MouseEvent) => void` | — |
+| `className` | Additional CSS class | `string` | — |
+
+<Warning>
+  `href` and `path` are mutually exclusive on the same item. Use `href` for absolute links and `path` for relative segments that get joined together automatically.
+</Warning>
+
+## SeparatorType
+
+To insert a custom separator at a specific position, add an item with `type: 'separator'`:
+
+```ts
+const item = {
+  type: 'separator', // required
+  separator: '/',    // optional, defaults to '/'
+};
+```

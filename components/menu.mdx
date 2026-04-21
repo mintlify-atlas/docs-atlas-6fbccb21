@@ -1,0 +1,220 @@
+---
+title: Menu — Ant Design Navigation Component for React
+description: Use Ant Design Menu for top, side, and inline navigation in React. Covers item types, nested submenus, dark theme, collapsed mode, and key event handlers.
+---
+
+The `Menu` component provides top-bar, side-bar, and inline navigation for React applications. It renders as a semantic `<ul>` element and supports nested submenus, grouped items, dividers, icons, and collapsible inline trees. Use `Menu` when you need structured navigation with multi-level hierarchy — pair it with `Layout.Sider` for standard dashboard layouts.
+
+<Note>
+  Menu needs to collect its node structure, so its children must be `Menu.*` components or HOCs that wrap them. Use the `items` prop (recommended over JSX children) to define the menu structure.
+</Note>
+
+## Basic usage
+
+<Tabs>
+  <Tab title="Inline menu">
+    ```tsx
+    import React from 'react';
+    import { AppstoreOutlined, MailOutlined, SettingOutlined } from '@ant-design/icons';
+    import type { MenuProps } from 'antd';
+    import { Menu } from 'antd';
+
+    type MenuItem = Required<MenuProps>['items'][number];
+
+    const items: MenuItem[] = [
+      {
+        key: 'sub1',
+        label: 'Navigation One',
+        icon: <MailOutlined />,
+        children: [
+          {
+            key: 'g1',
+            label: 'Item 1',
+            type: 'group',
+            children: [
+              { key: '1', label: 'Option 1' },
+              { key: '2', label: 'Option 2' },
+            ],
+          },
+        ],
+      },
+      {
+        key: 'sub2',
+        label: 'Navigation Two',
+        icon: <AppstoreOutlined />,
+        children: [
+          { key: '5', label: 'Option 5' },
+          { key: '6', label: 'Option 6' },
+        ],
+      },
+      { type: 'divider' },
+      {
+        key: 'sub3',
+        label: 'Navigation Three',
+        icon: <SettingOutlined />,
+        children: [
+          { key: '9', label: 'Option 9' },
+          { key: '10', label: 'Option 10' },
+        ],
+      },
+    ];
+
+    export default function App() {
+      const onClick: MenuProps['onClick'] = (e) => console.log('clicked', e.key);
+
+      return (
+        <Menu
+          onClick={onClick}
+          style={{ width: 256 }}
+          defaultSelectedKeys={['1']}
+          defaultOpenKeys={['sub1']}
+          mode="inline"
+          items={items}
+        />
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="Horizontal menu">
+    ```tsx
+    import React, { useState } from 'react';
+    import { AppstoreOutlined, MailOutlined, SettingOutlined } from '@ant-design/icons';
+    import type { MenuProps } from 'antd';
+    import { Menu } from 'antd';
+
+    type MenuItem = Required<MenuProps>['items'][number];
+
+    const items: MenuItem[] = [
+      { label: 'Navigation One', key: 'mail', icon: <MailOutlined /> },
+      { label: 'Navigation Two', key: 'app', icon: <AppstoreOutlined />, disabled: true },
+      {
+        label: 'Navigation Three - Submenu',
+        key: 'SubMenu',
+        icon: <SettingOutlined />,
+        children: [
+          {
+            type: 'group',
+            label: 'Item 1',
+            children: [
+              { label: 'Option 1', key: 'setting:1' },
+              { label: 'Option 2', key: 'setting:2' },
+            ],
+          },
+        ],
+      },
+    ];
+
+    export default function App() {
+      const [current, setCurrent] = useState('mail');
+      const onClick: MenuProps['onClick'] = (e) => setCurrent(e.key);
+
+      return (
+        <Menu
+          onClick={onClick}
+          selectedKeys={[current]}
+          mode="horizontal"
+          items={items}
+        />
+      );
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Modes
+
+Menu supports three layout modes controlled by the `mode` prop:
+
+| Mode | Description |
+|------|-------------|
+| `vertical` (default) | Items stack vertically; submenus open as popups |
+| `horizontal` | Items lay out in a row; overflowing items collapse into a `…` indicator |
+| `inline` | Items stack vertically; submenus expand inline as an accordion |
+
+<Tip>
+  Use `inlineCollapsed` with `mode="inline"` to let users collapse the sidebar to icon-only width. Collapsed items show a tooltip with the item label.
+</Tip>
+
+## Themes
+
+```tsx
+<Menu mode="inline" theme="dark" items={items} />
+<Menu mode="horizontal" theme="light" items={items} />
+```
+
+Set `theme="dark"` on the `<Menu>` component or on an individual `SubMenuType` item to apply the dark color scheme. Sub-menu themes inherit from the parent by default.
+
+## Flex layout fix
+
+When `Menu` is placed inside a flex container in `horizontal` mode, you must explicitly allow it to shrink so the responsive overflow logic works:
+
+```tsx
+<div style={{ display: 'flex' }}>
+  <div style={{ flex: '0 0 auto' }}>Logo</div>
+  <Menu mode="horizontal" style={{ minWidth: 0, flex: 'auto' }} items={items} />
+</div>
+```
+
+<Warning>
+  Without `minWidth: 0` on a horizontal Menu inside a flex container, the overflow indicator will not appear and items will clip outside the viewport instead.
+</Warning>
+
+## Menu props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `items` | Menu item configuration array | `ItemType[]` | — |
+| `mode` | Layout mode | `'vertical' \| 'horizontal' \| 'inline'` | `'vertical'` |
+| `theme` | Color theme | `'light' \| 'dark'` | `'light'` |
+| `selectedKeys` | Keys of currently selected items (controlled) | `string[]` | — |
+| `defaultSelectedKeys` | Keys of initially selected items | `string[]` | — |
+| `openKeys` | Keys of currently open sub-menus (controlled) | `string[]` | — |
+| `defaultOpenKeys` | Keys of initially open sub-menus | `string[]` | — |
+| `inlineCollapsed` | Collapsed state when `mode="inline"` | `boolean` | — |
+| `inlineIndent` | Pixel indent per nesting level | `number` | `24` |
+| `multiple` | Allow selecting multiple items | `boolean` | `false` |
+| `selectable` | Allow item selection | `boolean` | `true` |
+| `triggerSubMenuAction` | Action that opens a sub-menu | `'hover' \| 'click'` | `'hover'` |
+| `expandIcon` | Custom expand icon for sub-menus | `ReactNode \| function` | — |
+| `onClick` | Called when a menu item is clicked | `({ key, keyPath, domEvent }) => void` | — |
+| `onSelect` | Called when an item is selected | `({ key, keyPath, selectedKeys, domEvent }) => void` | — |
+| `onOpenChange` | Called when sub-menus open or close | `(openKeys: string[]) => void` | — |
+
+## Item types
+
+### MenuItemType
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `key` | Unique identifier | `string` | — |
+| `label` | Display label | `ReactNode` | — |
+| `icon` | Leading icon | `ReactNode` | — |
+| `disabled` | Disable the item | `boolean` | `false` |
+| `danger` | Apply danger/destructive styling | `boolean` | `false` |
+| `title` | Tooltip text when collapsed | `string` | — |
+
+### SubMenuType
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `key` | Unique identifier | `string` | — |
+| `label` | Sub-menu title | `ReactNode` | — |
+| `icon` | Leading icon | `ReactNode` | — |
+| `children` | Nested items | `ItemType[]` | — |
+| `disabled` | Disable the sub-menu | `boolean` | `false` |
+| `theme` | Override color theme for this sub-menu | `'light' \| 'dark'` | inherited |
+| `onTitleClick` | Callback when the sub-menu title is clicked | `({ key, domEvent }) => void` | — |
+
+### Group and divider
+
+```ts
+// Group — renders a labelled section header, not selectable
+const group = { type: 'group', label: 'My Group', children: [] };
+
+// Divider — horizontal rule between items
+const divider = { type: 'divider', dashed: false };
+```
+
+<Note>
+  Dividers only display in vertical popup menus and Dropdown menus. They are ignored in `mode="inline"` unless the sub-menu is rendered as a popup.
+</Note>

@@ -1,0 +1,125 @@
+---
+title: Pagination — Ant Design Page Navigation Component
+description: Split large data sets across pages with Ant Design Pagination. Covers controlled usage, page-size changers, quick-jump inputs, and total count display.
+---
+
+`Pagination` divides a large data set into discrete pages and renders a control bar for navigating between them. Use it whenever a list or table contains more records than can comfortably fit on screen — typically when fetching data page-by-page from an API. It supports controlled state, a page-size selector, a quick-jump input, and a customizable total-count label.
+
+## Basic usage
+
+```tsx
+import React from 'react';
+import { Pagination } from 'antd';
+
+export default function App() {
+  return <Pagination defaultCurrent={1} total={50} />;
+}
+```
+
+## Controlled pagination
+
+Manage the current page in component state to synchronize it with data fetches or URL params.
+
+```tsx
+import React, { useState } from 'react';
+import { Pagination } from 'antd';
+
+export default function App() {
+  const [current, setCurrent] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const handleChange = (page: number, size: number) => {
+    setCurrent(page);
+    setPageSize(size);
+  };
+
+  return (
+    <Pagination
+      current={current}
+      pageSize={pageSize}
+      total={500}
+      showSizeChanger
+      showQuickJumper
+      showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+      onChange={handleChange}
+    />
+  );
+}
+```
+
+## Variants and options
+
+<Tabs>
+  <Tab title="Simple mode">
+    ```tsx
+    <Pagination simple defaultCurrent={2} total={50} />
+    ```
+  </Tab>
+  <Tab title="Small size">
+    ```tsx
+    <Pagination size="small" total={50} showSizeChanger showQuickJumper />
+    ```
+  </Tab>
+  <Tab title="With total count">
+    ```tsx
+    <Pagination
+      total={85}
+      showTotal={(total) => `Total ${total} items`}
+      defaultPageSize={20}
+      defaultCurrent={1}
+    />
+    ```
+  </Tab>
+  <Tab title="Custom page sizes">
+    ```tsx
+    <Pagination
+      total={500}
+      pageSizeOptions={[5, 10, 25, 50]}
+      showSizeChanger
+      defaultPageSize={10}
+    />
+    ```
+  </Tab>
+</Tabs>
+
+<Tip>
+  When `total` exceeds `totalBoundaryShowSizeChanger` (default `50`), the page-size changer appears automatically even if `showSizeChanger` is not explicitly set.
+</Tip>
+
+## Alignment
+
+Use `align` to position the pagination bar within its container:
+
+```tsx
+<Pagination align="start"  total={50} />  {/* left */}
+<Pagination align="center" total={50} />  {/* centered */}
+<Pagination align="end"    total={50} />  {/* right */}
+```
+
+## Props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `total` | Total number of data items | `number` | `0` |
+| `current` | Current page number (controlled) | `number` | — |
+| `defaultCurrent` | Initial page number | `number` | `1` |
+| `pageSize` | Number of items per page (controlled) | `number` | — |
+| `defaultPageSize` | Initial items per page | `number` | `10` |
+| `pageSizeOptions` | Available page-size choices | `number[]` | `[10, 20, 50, 100]` |
+| `showSizeChanger` | Show the page-size dropdown | `boolean \| SelectProps` | auto when total > 50 |
+| `showQuickJumper` | Show the page-jump input | `boolean \| { goButton: ReactNode }` | `false` |
+| `showTotal` | Render a total-count label | `(total, range) => ReactNode` | — |
+| `simple` | Use compact single-input mode | `boolean \| { readOnly?: boolean }` | — |
+| `size` | Component size | `'large' \| 'medium' \| 'small'` | `'medium'` |
+| `align` | Horizontal alignment | `'start' \| 'center' \| 'end'` | — |
+| `disabled` | Disable all controls | `boolean` | — |
+| `hideOnSinglePage` | Hide the bar when there is only one page | `boolean` | `false` |
+| `responsive` | Resize automatically based on window width | `boolean` | — |
+| `showLessItems` | Show fewer page number buttons | `boolean` | `false` |
+| `itemRender` | Customize page buttons | `(page, type, originalElement) => ReactNode` | — |
+| `onChange` | Fires when page or page size changes | `(page, pageSize) => void` | — |
+| `onShowSizeChange` | Fires when page size changes | `(current, size) => void` | — |
+
+<Warning>
+  When using `current` as a controlled prop you must also handle `onChange` and update state there — otherwise the component will appear frozen and users won't be able to navigate.
+</Warning>

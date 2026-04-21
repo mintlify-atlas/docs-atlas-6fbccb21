@@ -1,0 +1,274 @@
+---
+title: "Table: Display and interact with structured data"
+description: "Render structured data with Ant Design Table — built-in sorting, filtering, pagination, row selection, expandable rows, and virtual scrolling."
+---
+
+The `Table` component renders structured data in a rows-and-columns layout. It is the right choice when you need to present a collection of records and allow users to sort by column values, filter rows by property, paginate through large datasets, or select rows for batch actions. For simple unstructured lists, consider a different layout component.
+
+## Installation
+
+```bash
+npm install antd
+```
+
+## Basic usage
+
+Pass a `dataSource` array and a `columns` definition to render a table. Each object in `dataSource` should have a unique `key` field, or supply `rowKey` explicitly. Each entry in `columns` declares a `title`, a `dataIndex` pointing to a data field, and an optional `render` function for custom cell output.
+
+```tsx basic-table.tsx
+import React from 'react';
+import { Table } from 'antd';
+import type { TableColumnsType } from 'antd';
+
+interface User {
+  key: string;
+  name: string;
+  age: number;
+  email: string;
+}
+
+const columns: TableColumnsType<User> = [
+  {
+    title: 'Name',
+    dataIndex: 'name',
+    key: 'name',
+    render: (text) => <a>{text}</a>,
+  },
+  {
+    title: 'Age',
+    dataIndex: 'age',
+    key: 'age',
+  },
+  {
+    title: 'Email',
+    dataIndex: 'email',
+    key: 'email',
+  },
+];
+
+const data: User[] = [
+  { key: '1', name: 'Alice Johnson', age: 28, email: 'alice@example.com' },
+  { key: '2', name: 'Bob Smith', age: 34, email: 'bob@example.com' },
+  { key: '3', name: 'Carol White', age: 42, email: 'carol@example.com' },
+];
+
+export default function BasicTable() {
+  return <Table<User> columns={columns} dataSource={data} />;
+}
+```
+
+<Note>
+  Always provide a unique `key` on each record, or set `rowKey` to the name of the field holding a unique identifier. Omitting keys triggers React reconciliation warnings in the console.
+</Note>
+
+## Sorting and filtering
+
+Add a `sorter` function to a column definition to enable client-side sorting. Add a `filters` array and an `onFilter` predicate to enable a dropdown filter menu. Both can be combined on the same column.
+
+```tsx sort-filter.tsx
+import React from 'react';
+import { Table } from 'antd';
+import type { TableColumnsType, TableProps } from 'antd';
+
+interface Employee {
+  key: string;
+  name: string;
+  department: string;
+  salary: number;
+}
+
+const columns: TableColumnsType<Employee> = [
+  {
+    title: 'Name',
+    dataIndex: 'name',
+    key: 'name',
+    sorter: (a, b) => a.name.localeCompare(b.name),
+  },
+  {
+    title: 'Department',
+    dataIndex: 'department',
+    key: 'department',
+    filters: [
+      { text: 'Engineering', value: 'Engineering' },
+      { text: 'Design', value: 'Design' },
+      { text: 'Marketing', value: 'Marketing' },
+    ],
+    onFilter: (value, record) => record.department === value,
+  },
+  {
+    title: 'Salary',
+    dataIndex: 'salary',
+    key: 'salary',
+    sorter: (a, b) => a.salary - b.salary,
+    defaultSortOrder: 'descend',
+    render: (val) => `$${val.toLocaleString()}`,
+  },
+];
+
+const data: Employee[] = [
+  { key: '1', name: 'Alice Johnson', department: 'Engineering', salary: 95000 },
+  { key: '2', name: 'Bob Smith', department: 'Design', salary: 78000 },
+  { key: '3', name: 'Carol White', department: 'Engineering', salary: 102000 },
+  { key: '4', name: 'Dave Lee', department: 'Marketing', salary: 65000 },
+];
+
+const handleChange: TableProps<Employee>['onChange'] = (pagination, filters, sorter, extra) => {
+  console.log('Table changed', { pagination, filters, sorter, action: extra.action });
+};
+
+export default function SortFilterTable() {
+  return (
+    <Table<Employee>
+      columns={columns}
+      dataSource={data}
+      onChange={handleChange}
+    />
+  );
+}
+```
+
+<Tip>
+  For server-side sorting and filtering, set `sorter` to `true` on a column and drive data updates from the `onChange` callback. The `extra.action` field is `"sort"`, `"filter"`, or `"paginate"`, so you can skip unnecessary API calls.
+</Tip>
+
+## Pagination
+
+Pagination is built-in when using `dataSource`. Pass a `pagination` object to customise page size, position, and display options. Set `pagination={false}` to disable it entirely.
+
+```tsx paginated-table.tsx
+import React from 'react';
+import { Table } from 'antd';
+import type { TableColumnsType } from 'antd';
+
+interface Product {
+  key: string;
+  name: string;
+  category: string;
+  stock: number;
+}
+
+const columns: TableColumnsType<Product> = [
+  { title: 'Product', dataIndex: 'name', key: 'name' },
+  { title: 'Category', dataIndex: 'category', key: 'category' },
+  { title: 'Stock', dataIndex: 'stock', key: 'stock' },
+];
+
+const data: Product[] = Array.from({ length: 46 }, (_, i) => ({
+  key: String(i + 1),
+  name: `Product ${i + 1}`,
+  category: i % 2 === 0 ? 'Electronics' : 'Clothing',
+  stock: Math.floor(Math.random() * 200),
+}));
+
+export default function PaginatedTable() {
+  return (
+    <Table<Product>
+      columns={columns}
+      dataSource={data}
+      pagination={{
+        pageSize: 10,
+        showSizeChanger: true,
+        showTotal: (total) => `${total} items`,
+      }}
+    />
+  );
+}
+```
+
+## Row selection
+
+Enable checkboxes by passing a `rowSelection` object. Track selected keys in state and use them for batch operations.
+
+```tsx row-selection.tsx
+import React, { useState } from 'react';
+import { Button, Space, Table } from 'antd';
+import type { TableColumnsType, TableProps } from 'antd';
+
+interface Order {
+  key: string;
+  id: string;
+  customer: string;
+  amount: number;
+}
+
+const columns: TableColumnsType<Order> = [
+  { title: 'Order ID', dataIndex: 'id', key: 'id' },
+  { title: 'Customer', dataIndex: 'customer', key: 'customer' },
+  { title: 'Amount', dataIndex: 'amount', key: 'amount', render: (v) => `$${v}` },
+];
+
+const data: Order[] = [
+  { key: '1', id: 'ORD-001', customer: 'Alice', amount: 240 },
+  { key: '2', id: 'ORD-002', customer: 'Bob', amount: 180 },
+  { key: '3', id: 'ORD-003', customer: 'Carol', amount: 320 },
+];
+
+export default function SelectionTable() {
+  const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
+
+  const rowSelection: TableProps<Order>['rowSelection'] = {
+    selectedRowKeys: selectedKeys,
+    onChange: (keys) => setSelectedKeys(keys),
+  };
+
+  return (
+    <Space direction="vertical" style={{ width: '100%' }}>
+      {selectedKeys.length > 0 && (
+        <Button danger onClick={() => setSelectedKeys([])}>
+          Delete {selectedKeys.length} selected
+        </Button>
+      )}
+      <Table<Order>
+        rowSelection={rowSelection}
+        columns={columns}
+        dataSource={data}
+      />
+    </Space>
+  );
+}
+```
+
+## Table props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `dataSource` | `object[]` | - | Array of data records to display |
+| `columns` | `ColumnsType[]` | - | Column definitions |
+| `rowKey` | `string \| ((record) => string)` | `"key"` | Unique identifier for each row |
+| `pagination` | `object \| false` | - | Pagination config; `false` disables it |
+| `loading` | `boolean \| SpinProps` | `false` | Show a loading overlay |
+| `rowSelection` | `object` | - | Checkbox/radio row selection config |
+| `expandable` | `object` | - | Expandable row configuration |
+| `scroll` | `{ x?, y? }` | - | Enable horizontal or vertical scroll |
+| `bordered` | `boolean` | `false` | Show all table borders |
+| `size` | `"large" \| "medium" \| "small"` | `"large"` | Table density |
+| `onChange` | `(pagination, filters, sorter, extra) => void` | - | Fired when pagination, sort, or filter changes |
+| `onRow` | `(record, index) => HTMLAttributes` | - | Set props on each row element |
+| `title` | `(currentPageData) => ReactNode` | - | Table title renderer |
+| `footer` | `(currentPageData) => ReactNode` | - | Table footer renderer |
+| `summary` | `(currentData) => ReactNode` | - | Summary row rendered below the data |
+| `virtual` | `boolean` | - | Enable virtual scrolling (v5.9+) |
+
+## Column props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `ReactNode` | - | Column header label |
+| `dataIndex` | `string \| string[]` | - | Field name on the data record |
+| `key` | `string` | - | Unique column key |
+| `render` | `(value, record, index) => ReactNode` | - | Custom cell renderer |
+| `sorter` | `function \| boolean` | - | Comparator for client-side sort |
+| `defaultSortOrder` | `"ascend" \| "descend"` | - | Initial sort direction |
+| `filters` | `{ text, value }[]` | - | Filter menu options |
+| `onFilter` | `(value, record) => boolean` | - | Row inclusion test when filtering |
+| `filteredValue` | `string[]` | - | Controlled filtered values |
+| `fixed` | `boolean \| "start" \| "end"` | `false` | Pin column to left or right |
+| `width` | `string \| number` | - | Column width |
+| `align` | `"left" \| "right" \| "center"` | `"left"` | Cell text alignment |
+| `ellipsis` | `boolean` | `false` | Truncate overflowing content with ellipsis |
+| `hidden` | `boolean` | `false` | Hide this column (v5.13+) |
+| `responsive` | `Breakpoint[]` | - | Show column only at specified breakpoints |
+
+<Warning>
+  Setting `width` on columns only affects layout when `scroll.x` is also set or `tableLayout="fixed"` is used. Without a scroll container, the browser distributes column widths automatically and explicit widths are ignored.
+</Warning>

@@ -1,0 +1,259 @@
+---
+title: "Input: Single-Line and Multi-Line Text Fields for React"
+description: "Ant Design Input wraps the native text field with sizing, prefix/suffix, clear button, and sub-components for search, password, textarea, and OTP entry."
+---
+
+The `Input` component is the most basic form field in Ant Design. It wraps the native `<input>` element with consistent styling, validation status support, and a family of specialized sub-components: `Input.TextArea`, `Input.Search`, `Input.Password`, and `Input.OTP`. Use `Input` when you need a single-line text field; use `Input.TextArea` for multi-line content.
+
+## Basic usage
+
+Pass `value` and `onChange` for a controlled field, or use `defaultValue` for an uncontrolled one.
+
+```tsx basic-input.tsx
+import React, { useState } from 'react';
+import { Input } from 'antd';
+
+const ControlledInput: React.FC = () => {
+  const [value, setValue] = useState('');
+
+  return (
+    <Input
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      placeholder="Enter text"
+      allowClear
+    />
+  );
+};
+
+export default ControlledInput;
+```
+
+## Variants
+
+<Tabs>
+  <Tab title="Sizes">
+    ```tsx input-sizes.tsx
+    import { Input, Space } from 'antd';
+
+    export default function InputSizes() {
+      return (
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Input size="large" placeholder="Large input" />
+          <Input placeholder="Default (medium) input" />
+          <Input size="small" placeholder="Small input" />
+        </Space>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="Prefix and suffix">
+    ```tsx prefix-suffix.tsx
+    import { Input } from 'antd';
+    import { UserOutlined, SearchOutlined } from '@ant-design/icons';
+
+    export default function PrefixSuffix() {
+      return (
+        <Input
+          prefix={<UserOutlined />}
+          suffix={<SearchOutlined />}
+          placeholder="Search by name"
+        />
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="With character count">
+    ```tsx char-count.tsx
+    import { Input } from 'antd';
+
+    export default function CharCount() {
+      return (
+        <Input
+          showCount
+          maxLength={100}
+          placeholder="Bio (max 100 characters)"
+        />
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="Outlined variants">
+    ```tsx input-variants.tsx
+    import { Input, Space } from 'antd';
+
+    export default function InputVariants() {
+      return (
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Input variant="outlined" placeholder="Outlined (default)" />
+          <Input variant="filled" placeholder="Filled" />
+          <Input variant="borderless" placeholder="Borderless" />
+          <Input variant="underlined" placeholder="Underlined" />
+        </Space>
+      );
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Common patterns
+
+### Password field
+
+`Input.Password` adds a visibility toggle so users can reveal their password. Control visibility programmatically with `visibilityToggle`.
+
+```tsx password-field.tsx
+import React, { useState } from 'react';
+import { Input } from 'antd';
+
+const PasswordField: React.FC = () => {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <Input.Password
+      placeholder="Enter password"
+      visibilityToggle={{ visible, onVisibleChange: setVisible }}
+    />
+  );
+};
+```
+
+### Search field
+
+`Input.Search` renders a search button or icon inside the input. The `onSearch` callback fires on Enter or button click.
+
+```tsx search-field.tsx
+import React from 'react';
+import { Input } from 'antd';
+
+const SearchField: React.FC = () => (
+  <Input.Search
+    placeholder="Search products"
+    enterButton="Search"
+    size="large"
+    onSearch={(value) => console.log('Searching for:', value)}
+  />
+);
+```
+
+### Textarea with auto-size
+
+`Input.TextArea` supports auto-resizing to fit content. Pass `autoSize` with `minRows` and `maxRows` to constrain the growth.
+
+```tsx textarea.tsx
+import React, { useState } from 'react';
+import { Input } from 'antd';
+
+const TextareaField: React.FC = () => {
+  const [value, setValue] = useState('');
+
+  return (
+    <Input.TextArea
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      placeholder="Enter a description"
+      autoSize={{ minRows: 3, maxRows: 8 }}
+      showCount
+      maxLength={500}
+    />
+  );
+};
+```
+
+### OTP input
+
+`Input.OTP` renders a series of single-character boxes for one-time password entry. `onChange` fires once all boxes are filled.
+
+```tsx otp-input.tsx
+import React from 'react';
+import { Input } from 'antd';
+
+const OTPField: React.FC = () => (
+  <Input.OTP
+    length={6}
+    onChange={(value) => console.log('OTP entered:', value)}
+  />
+);
+```
+
+### Input inside a Form
+
+When used inside `Form.Item`, `Input` receives `value` and `onChange` automatically from the form store. Set `hasFeedback` on the `Form.Item` to show a validation status icon.
+
+```tsx form-input.tsx
+import { Form, Input } from 'antd';
+
+<Form.Item
+  name="email"
+  label="Email"
+  hasFeedback
+  rules={[
+    { required: true },
+    { type: 'email', message: 'Enter a valid email address.' },
+  ]}
+>
+  <Input placeholder="you@example.com" />
+</Form.Item>
+```
+
+## Input props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `value` | Controlled field value | `string` | — |
+| `defaultValue` | Uncontrolled initial value | `string` | — |
+| `placeholder` | Placeholder text | `string` | — |
+| `size` | Input size | `large` \| `medium` \| `small` | — |
+| `disabled` | Disable the input | `boolean` | `false` |
+| `allowClear` | Show a clear button when the field has a value | `boolean \| { clearIcon: ReactNode }` | `false` |
+| `prefix` | Node displayed before the input value | `ReactNode` | — |
+| `suffix` | Node displayed after the input value | `ReactNode` | — |
+| `maxLength` | Maximum number of characters | `number` | — |
+| `showCount` | Show character count | `boolean \| { formatter }` | `false` |
+| `status` | Validation status style | `'error'` \| `'warning'` | — |
+| `variant` | Border style | `outlined` \| `borderless` \| `filled` \| `underlined` | `outlined` |
+| `type` | Native input type attribute | `string` | `text` |
+| `onChange` | Called when the value changes | `(e: ChangeEvent) => void` | — |
+| `onPressEnter` | Called when Enter is pressed | `(e: KeyboardEvent) => void` | — |
+| `onClear` | Called when the clear button is clicked | `() => void` | — |
+
+## Input.TextArea additional props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `autoSize` | Auto-resize to content height | `boolean \| { minRows: number, maxRows: number }` | `false` |
+
+## Input.Search additional props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `enterButton` | Show search button (`true` uses primary color) | `boolean \| ReactNode` | `false` |
+| `loading` | Show loading state on the search button | `boolean` | `false` |
+| `onSearch` | Called when the user submits the search | `(value, event, { source }) => void` | — |
+
+## Input.Password additional props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `visibilityToggle` | Control the visibility toggle | `boolean \| { visible: boolean, onVisibleChange: (v) => void }` | `true` |
+| `iconRender` | Custom toggle button renderer | `(visible) => ReactNode` | eye icons |
+
+## Input.OTP props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `length` | Number of input boxes | `number` | `6` |
+| `value` | Controlled value | `string` | — |
+| `mask` | Mask display (like password mode) | `boolean \| string` | `false` |
+| `disabled` | Disable all boxes | `boolean` | `false` |
+| `size` | Input box size | `small` \| `medium` \| `large` | `medium` |
+| `onChange` | Called when all boxes are filled | `(value: string) => void` | — |
+| `onInput` | Called on each keystroke | `(value: string[]) => void` | — |
+
+<Note>
+  When `Input` is placed inside `Form.Item` with a `name` prop, the `value`, `defaultValue`, and `id` props are automatically managed by the form store. Do not set them directly.
+</Note>
+
+<Warning>
+  Dynamically adding or removing `prefix`, `suffix`, or `showCount` causes React to recreate the DOM node, which drops focus. To avoid this, always render an empty `<span />` placeholder when those props should be absent rather than omitting the prop entirely.
+</Warning>

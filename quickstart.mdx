@@ -1,80 +1,228 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Getting Started with Ant Design in a React Project"
+description: "Install antd, wrap your app with ConfigProvider, and render your first Button or DatePicker component in a React 18+ project using npm, yarn, or pnpm."
 ---
 
-## Get started in three steps
+Ant Design React (`antd`) is dedicated to providing a good development experience for programmers. This guide walks you through installing the package, writing your first component, and understanding the conventions you'll use every day — from tree shaking and TypeScript types to the `App` wrapper for static utility methods.
 
-Get your documentation site running locally and make your first customization.
+Before starting, make sure you have [Node.js](https://nodejs.org/) v16 or above installed and a working React 18+ project. If you need to scaffold a new project first, refer to your framework's setup guide (Next.js, Vite, Create React App, etc.).
 
-### Step 1: Set up your local environment
+<Note>
+  Ant Design requires **React 18 or above** as of v6. If your project is on React 17, you must either stay on antd v5 or upgrade React before proceeding.
+</Note>
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+## Installation
 
-### Step 2: Deploy your changes
+Install `antd` from the npm registry using your preferred package manager.
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+<CodeGroup>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+```bash npm
+npm install antd --save
+```
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+```bash yarn
+yarn add antd
+```
 
-### Step 3: Go live
+```bash pnpm
+pnpm install antd --save
+```
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+```bash bun
+bun add antd
+```
+
+</CodeGroup>
+
+`antd` includes its own TypeScript definitions. Do **not** install `@types/antd` — it doesn't exist and isn't needed.
+
+## Your first component
+
+Once installed, you can import any component directly from `antd`. No extra Babel plugins or global style imports are required.
+
+```tsx
+import React from 'react';
+import { DatePicker } from 'antd';
+
+const App = () => {
+  return <DatePicker />;
+};
+
+export default App;
+```
+
+Ant Design uses CSS-in-JS to inject styles at runtime, so there is no separate stylesheet to import.
+
+## A working interactive example
+
+The following example combines a `DatePicker` with the `message` API to show a notification whenever the user picks a date.
+
+```tsx
+import React, { useState } from 'react';
+import { DatePicker, message } from 'antd';
+import { createRoot } from 'react-dom/client';
+
+const App = () => {
+  const [date, setDate] = useState(null);
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const handleChange = (value) => {
+    messageApi.info(`Selected Date: ${value ? value.format('YYYY-MM-DD') : 'None'}`);
+    setDate(value);
+  };
+
+  return (
+    <div style={{ width: 400, margin: '100px auto' }}>
+      <DatePicker onChange={handleChange} />
+      <div style={{ marginTop: 16 }}>
+        Selected Date: {date ? date.format('YYYY-MM-DD') : 'None'}
+      </div>
+      {contextHolder}
+    </div>
+  );
+};
+
+createRoot(document.getElementById('root')).render(<App />);
+```
+
+<Tip>
+  `message.useMessage()` returns a `[messageApi, contextHolder]` tuple. Render `contextHolder` anywhere in the component tree to make the message work. This avoids calling the static `message.info()` API outside of a React context.
+</Tip>
+
+## Wrap your app with ConfigProvider
+
+For most projects you'll want to wrap your root component with `ConfigProvider`. It sets locale, theme tokens, component-level defaults, and direction (LTR/RTL) for the entire application.
+
+```tsx
+import React from 'react';
+import { ConfigProvider } from 'antd';
+import enUS from 'antd/locale/en_US';
+
+const Root = () => (
+  <ConfigProvider locale={enUS}>
+    {/* your application */}
+  </ConfigProvider>
+);
+
+export default Root;
+```
+
+To enable dark mode, pass `theme={{ algorithm: theme.darkAlgorithm }}`:
+
+```tsx
+import React from 'react';
+import { ConfigProvider, theme } from 'antd';
+
+const Root = () => (
+  <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
+    {/* your application */}
+  </ConfigProvider>
+);
+
+export default Root;
+```
+
+## Static methods and the App wrapper
+
+Some antd utilities — `Modal.confirm`, `message.success`, `notification.open` — are called imperatively outside the React render cycle. The recommended approach is the `App` component wrapper, which exposes these methods via a hook:
+
+```tsx
+import React from 'react';
+import { App, Button } from 'antd';
+
+const MyPage = () => {
+  const { modal, message, notification } = App.useApp();
+
+  const handleClick = () => {
+    modal.confirm({
+      title: 'Are you sure?',
+      onOk: () => message.success('Done!'),
+    });
+  };
+
+  return <Button onClick={handleClick}>Open modal</Button>;
+};
+
+// Place App inside ConfigProvider at your root level
+const Root = () => (
+  <ConfigProvider>
+    <App>
+      <MyPage />
+    </App>
+  </ConfigProvider>
+);
+
+export default Root;
+```
+
+<Info>
+  The `App` wrapper must be placed inside `ConfigProvider` (if you use one) so it inherits the correct locale, theme, and direction settings.
+</Info>
+
+## Tree shaking
+
+`antd` ships ES modules and is fully tree-shakeable. Named imports are all you need — no Babel plugin required:
+
+```tsx
+import { Button, DatePicker, Table } from 'antd';
+```
+
+Your bundler (webpack, Vite, Rollup) will automatically drop all component code you haven't imported.
+
+## TypeScript
+
+Ant Design is TypeScript-first. Component prop types and shared utilities are exported directly from the package:
+
+```tsx
+import type { ButtonProps, DatePickerProps } from 'antd';
+
+const MyButton: React.FC<ButtonProps> = (props) => {
+  return <Button {...props} />;
+};
+```
+
+Types are bundled inside `antd` itself — do not install `@types/antd`.
+
+## Testing with Jest
+
+Jest does not support ES modules by default. Add a transform to your Jest configuration so it compiles the ESM source:
+
+```json
+{
+  "transform": {
+    "^.+\\.(ts|tsx|js|jsx)?$": "ts-jest"
+  }
+}
+```
+
+## Step-by-step setup summary
+
+<Steps>
+  <Step title="Install antd">
+    Run `npm install antd --save` (or the equivalent for yarn/pnpm/bun) in your project root.
+  </Step>
+  <Step title="Import a component">
+    Add `import { Button } from 'antd';` to any component file and render `<Button type="primary">Hello</Button>` to confirm everything works.
+  </Step>
+  <Step title="Add ConfigProvider at the root">
+    Wrap your root component with `<ConfigProvider>` to set locale, theme, and direction globally.
+  </Step>
+  <Step title="Add the App wrapper for static methods">
+    If you use `Modal.confirm`, `message`, or `notification`, place `<App>` inside `ConfigProvider` and use `App.useApp()` to access those methods.
+  </Step>
+  <Step title="Explore components">
+    Browse the component documentation to find what you need. Every component page includes live demos with editable source code.
+  </Step>
+</Steps>
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Customize your theme" icon="palette" href="/advanced/customize-theme">
+    Use design tokens to change colors, typography, spacing, and more across your entire application.
+  </Card>
+  <Card title="Migrate from v5" icon="circle-arrow-up" href="/migration-v6">
+    Already using antd v5? Read the breaking-changes guide before upgrading to v6.
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

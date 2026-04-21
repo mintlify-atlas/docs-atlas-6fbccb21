@@ -1,0 +1,180 @@
+---
+title: "Using a Custom Date Library in Ant Design Components"
+description: "Replace the default Day.js in Ant Design date components with Moment.js, date-fns, or luxon using generatePicker and generateCalendar wrapper components."
+---
+
+By default, Ant Design uses [Day.js](https://day.js.org) to handle time and date values across components such as `DatePicker`, `TimePicker`, `RangePicker`, and `Calendar`. Day.js is a lightweight Moment.js-compatible library. If your project already depends on a different date library — Moment.js, date-fns, or luxon — you can swap out Day.js without changing any component call sites by creating thin wrapper components with `DatePicker.generatePicker` and `Calendar.generateCalendar`.
+
+<Note>
+  Ant Design currently supports **moment**, **date-fns**, and **luxon** as alternative date libraries. date-fns support requires antd 4.5.0 or later; luxon support requires antd 5.4.0 or later.
+</Note>
+
+## Using Moment.js
+
+Moment.js can be integrated either by hand-rolling wrapper components or by using the `@ant-design/moment-webpack-plugin` Webpack plugin, which replaces Day.js at the bundler level with no source changes required.
+
+### Option A: Wrapper components
+
+<Steps>
+  <Step title="Create src/components/DatePicker.tsx">
+    ```tsx
+    import momentGenerateConfig from '@rc-component/picker/generate/moment';
+    import { DatePicker } from 'antd';
+    import type { Moment } from 'moment';
+
+    const MyDatePicker = DatePicker.generatePicker<Moment>(momentGenerateConfig);
+
+    export default MyDatePicker;
+    ```
+  </Step>
+
+  <Step title="Create src/components/TimePicker.tsx">
+    ```tsx
+    import * as React from 'react';
+    import type { PickerTimeProps } from 'antd/es/date-picker/generatePicker';
+    import type { Moment } from 'moment';
+
+    import DatePicker from './DatePicker';
+
+    export interface TimePickerProps extends Omit<PickerTimeProps<Moment>, 'picker'> {}
+
+    const TimePicker = React.forwardRef<any, TimePickerProps>((props, ref) => (
+      <DatePicker {...props} picker="time" mode={undefined} ref={ref} />
+    ));
+
+    TimePicker.displayName = 'TimePicker';
+
+    export default TimePicker;
+    ```
+  </Step>
+
+  <Step title="Create src/components/Calendar.tsx">
+    ```tsx
+    import momentGenerateConfig from '@rc-component/picker/generate/moment';
+    import { Calendar } from 'antd';
+    import type { Moment } from 'moment';
+
+    const MyCalendar = Calendar.generateCalendar<Moment>(momentGenerateConfig);
+
+    export default MyCalendar;
+    ```
+  </Step>
+
+  <Step title="Re-export from src/components/index.tsx">
+    ```tsx
+    export { default as Calendar } from './Calendar';
+    export { default as DatePicker } from './DatePicker';
+    export { default as TimePicker } from './TimePicker';
+    ```
+  </Step>
+
+  <Step title="Update your import statements">
+    ```diff
+    - import { DatePicker, Calendar } from 'antd';
+    - import format from 'dayjs';
+
+    + import { DatePicker, TimePicker, Calendar } from './components';
+    + import format from 'moment';
+    ```
+  </Step>
+</Steps>
+
+### Option B: Webpack plugin
+
+If you prefer not to create wrapper files, `@ant-design/moment-webpack-plugin` replaces Day.js with Moment.js automatically during bundling.
+
+```js
+// webpack-config.js
+const AntdMomentWebpackPlugin = require('@ant-design/moment-webpack-plugin');
+
+module.exports = {
+  // ...
+  plugins: [new AntdMomentWebpackPlugin()],
+};
+```
+
+## Using date-fns
+
+date-fns uses native `Date` objects rather than a wrapper type, so the generator config differs slightly.
+
+<Steps>
+  <Step title="Create src/components/DatePicker.tsx">
+    ```tsx
+    import dateFnsGenerateConfig from '@rc-component/picker/generate/dateFns';
+    import { DatePicker } from 'antd';
+
+    const MyDatePicker = DatePicker.generatePicker<Date>(dateFnsGenerateConfig);
+
+    export default MyDatePicker;
+    ```
+  </Step>
+</Steps>
+
+Follow the same pattern as the Moment.js example for `TimePicker`, `Calendar`, and the barrel `index.tsx`.
+
+## Using luxon
+
+Luxon uses the `DateTime` class from the `luxon` package and relies on the browser's native `Intl` API for localisation rather than bundled locale data.
+
+<Steps>
+  <Step title="Create src/components/DatePicker.tsx">
+    ```tsx
+    import luxonGenerateConfig from '@rc-component/picker/generate/luxon';
+    import { DatePicker } from 'antd';
+    import type { DateTime } from 'luxon';
+
+    const MyDatePicker = DatePicker.generatePicker<DateTime>(luxonGenerateConfig);
+
+    export default MyDatePicker;
+    ```
+  </Step>
+</Steps>
+
+### Notable differences from Day.js
+
+Because luxon delegates locale handling to `Intl`, there are some behavioural differences to be aware of:
+
+- The first day of the week is always Monday, regardless of locale.
+- Week-of-year numbers may differ (ISO week rules are used).
+- Short weekday names may have 3 characters instead of 2 for custom locales.
+- Selected week label format differs slightly (for example, `"2021-01"` instead of `"2021-1st"`).
+
+You can override these defaults by spreading `luxonGenerateConfig` and replacing individual methods:
+
+```tsx
+import luxonGenerateConfig from '@rc-component/picker/generate/luxon';
+import { DatePicker } from 'antd';
+import type { DateTime } from 'luxon';
+
+const customLuxonConfig = {
+  ...luxonGenerateConfig,
+  getWeekFirstDay(locale) {
+    // Your custom implementation goes here
+  },
+};
+
+const MyDatePicker = DatePicker.generatePicker<DateTime>(customLuxonConfig);
+
+export default MyDatePicker;
+```
+
+<Warning>
+  Customising `luxonGenerateConfig` can produce unexpected edge cases. Always test week-boundary and locale-switching scenarios after making changes.
+</Warning>
+
+## Comparison
+
+<CardGroup cols={2}>
+  <Card title="Day.js (default)" icon="calendar">
+    Zero extra setup. Bundled locale data. Smallest bundle impact. Immutable API compatible with Moment.js.
+  </Card>
+  <Card title="Moment.js" icon="clock">
+    Use when an existing codebase already depends on Moment.js. Larger bundle. Use the Webpack plugin to avoid wrapper boilerplate.
+  </Card>
+  <Card title="date-fns" icon="calendar-days">
+    Functional, tree-shakeable library. Uses native `Date` objects. Supported since antd 4.5.0.
+  </Card>
+  <Card title="luxon" icon="globe">
+    Modern API with strong timezone support via `Intl`. No bundled locale data. Supported since antd 5.4.0.
+  </Card>
+</CardGroup>

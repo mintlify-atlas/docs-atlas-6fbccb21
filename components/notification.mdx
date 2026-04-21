@@ -1,0 +1,192 @@
+---
+title: "Notification: Corner Alerts for Ant Design React"
+description: "Push rich notification messages to any corner of the viewport with titles, descriptions, icons, and action buttons that stay until dismissed."
+---
+
+Notification displays persistent alert boxes in one of six viewport corners. Unlike `Message`, which shows brief toasts at the top center, Notification supports a title, a detailed description, a custom icon, and action buttons — making it suitable for system-level alerts, background task updates, and application-pushed events that the user should act on.
+
+<Tip>
+  Use `notification.useNotification()` inside components so that notifications inherit your `ConfigProvider` theme, locale, and direction. The static API is convenient but runs outside the React tree and cannot access those settings.
+</Tip>
+
+## Basic usage
+
+### Hook API (recommended)
+
+Call `notification.useNotification()` to get an `api` object and a `contextHolder` node. Render `contextHolder` in your JSX tree and use `api.open()` or type shortcuts.
+
+```tsx notification-hook.tsx
+import React from 'react';
+import { Button, notification } from 'antd';
+
+export default function HookNotification() {
+  const [api, contextHolder] = notification.useNotification();
+
+  const openNotification = () => {
+    api.success({
+      title: 'Deployment complete',
+      description: 'Your application was deployed to production.',
+      placement: 'topRight',
+    });
+  };
+
+  return (
+    <>
+      {contextHolder}
+      <Button type="primary" onClick={openNotification}>
+        Deploy
+      </Button>
+    </>
+  );
+}
+```
+
+### Static API
+
+The static methods are available without setup and work outside React components, but they do not pick up `ConfigProvider` configuration.
+
+```tsx notification-static.tsx
+import { Button, notification } from 'antd';
+
+export default function StaticNotification() {
+  return (
+    <Button
+      onClick={() =>
+        notification.info({
+          title: 'New message',
+          description: 'You have a new message from the team.',
+        })
+      }
+    >
+      Show notification
+    </Button>
+  );
+}
+```
+
+## Notification types
+
+<CodeGroup>
+
+```tsx type-success.tsx
+api.success({ title: 'Saved', description: 'Your changes were saved.' });
+```
+
+```tsx type-error.tsx
+api.error({ title: 'Error', description: 'Could not connect to the server.' });
+```
+
+```tsx type-warning.tsx
+api.warning({ title: 'Warning', description: 'Storage is almost full.' });
+```
+
+```tsx type-info.tsx
+api.info({ title: 'Update available', description: 'A new version is ready.' });
+```
+
+</CodeGroup>
+
+## Placement
+
+Pass `placement` to control which corner the notification appears in. The default is `topRight`.
+
+```tsx notification-placement.tsx
+import React from 'react';
+import { Button, notification, Space } from 'antd';
+import type { NotificationPlacement } from 'antd/es/notification/interface';
+
+export default function PlacementDemo() {
+  const [api, contextHolder] = notification.useNotification();
+
+  const open = (placement: NotificationPlacement) => {
+    api.info({ title: `Notification (${placement})`, description: 'Shown in the chosen corner.', placement });
+  };
+
+  return (
+    <>
+      {contextHolder}
+      <Space>
+        <Button onClick={() => open('topLeft')}>Top left</Button>
+        <Button onClick={() => open('topRight')}>Top right</Button>
+        <Button onClick={() => open('bottomLeft')}>Bottom left</Button>
+        <Button onClick={() => open('bottomRight')}>Bottom right</Button>
+      </Space>
+    </>
+  );
+}
+```
+
+## Using with App
+
+Wrap your application in `<App>` and call `App.useApp().notification` to avoid managing `contextHolder` manually.
+
+```tsx notification-app.tsx
+import { App, Button } from 'antd';
+
+function AlertButton() {
+  const { notification } = App.useApp();
+  return (
+    <Button
+      onClick={() =>
+        notification.success({ title: 'Done', description: 'Task completed.' })
+      }
+    >
+      Complete task
+    </Button>
+  );
+}
+
+export default function Page() {
+  return (
+    <App>
+      <AlertButton />
+    </App>
+  );
+}
+```
+
+## Props
+
+### notification.open(config) / notification\[type\](config)
+
+| Prop | Description | Type | Default |
+|---|---|---|---|
+| `title` | Notification title | `ReactNode` | — |
+| `description` | Body content | `ReactNode` | — |
+| `type` | Style variant | `'success' \| 'info' \| 'warning' \| 'error'` | — |
+| `placement` | Viewport corner | `'top' \| 'topLeft' \| 'topRight' \| 'bottom' \| 'bottomLeft' \| 'bottomRight'` | `'topRight'` |
+| `duration` | Seconds before auto-dismiss; `0` or `false` disables | `number \| false` | `4.5` |
+| `icon` | Custom leading icon | `ReactNode` | — |
+| `key` | Unique identifier; re-using the same key updates the existing notification | `string` | — |
+| `actions` | Action button group | `ReactNode` | — |
+| `closeIcon` | Custom close icon; set `null` or `false` to hide | `ReactNode` | `true` |
+| `showProgress` | Show a progress bar for the auto-close timer | `boolean` | — |
+| `pauseOnHover` | Pause the dismiss timer while the cursor is over the notification | `boolean` | `true` |
+| `onClick` | Click handler for the notification | `() => void` | — |
+| `onClose` | Called when the notification closes | `() => void` | — |
+| `style` | Inline styles | `CSSProperties` | — |
+| `className` | Custom CSS class | `string` | — |
+
+### notification.useNotification(config)
+
+Options passed to the hook configure defaults for all notifications created by the returned `api`.
+
+| Option | Description | Type | Default |
+|---|---|---|---|
+| `placement` | Default corner | `string` | `'topRight'` |
+| `top` | Distance from the top of the viewport (px) | `number` | `24` |
+| `bottom` | Distance from the bottom of the viewport (px) | `number` | `24` |
+| `maxCount` | Maximum simultaneous notifications | `number` | — |
+| `stack` | Stack notifications after a threshold | `boolean \| { threshold: number }` | `{ threshold: 3 }` |
+| `rtl` | Enable right-to-left mode | `boolean` | `false` |
+| `showProgress` | Default progress bar visibility | `boolean` | — |
+| `pauseOnHover` | Default hover-pause behavior | `boolean` | `true` |
+| `getContainer` | Custom mount target | `() => HTMLElement` | `document.body` |
+
+<Warning>
+  Static methods (`notification.success()`, etc.) cannot access `ConfigProvider` theme tokens or locale settings because they run in a separate React root. Use `notification.useNotification()` or `App.useApp().notification` when consistent styling matters.
+</Warning>
+
+<Note>
+  Set `duration: 0` (or `false`) to create a notification that the user must close manually — useful for critical alerts that should not disappear automatically.
+</Note>

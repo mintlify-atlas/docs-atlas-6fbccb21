@@ -1,0 +1,340 @@
+---
+title: "Form: Data Entry, Validation, and Submission in React"
+description: "Ant Design Form manages field values, runs validation rules, and exposes the useForm hook and onFinish callback for controlled data collection."
+---
+
+The `Form` component provides a complete data-entry solution: it stores field values internally, runs validation rules on change or submit, and exposes a `FormInstance` API for programmatic reads and writes. Wrap any input component in `Form.Item` with a `name` prop to connect it to the store automatically.
+
+<Tip>
+  Always create your form instance with `Form.useForm()` and pass it to the `form` prop. This gives you full control over `setFieldsValue`, `validateFields`, and `resetFields` at any point in the component lifecycle.
+</Tip>
+
+## Basic usage
+
+Use `Form.useForm()` to create a form instance, define each field with `Form.Item`, and supply a `rules` array to validate on change. The `onFinish` callback fires only after all validations pass.
+
+```tsx basic-form.tsx
+import React from 'react';
+import { Button, Form, Input } from 'antd';
+import type { FormProps } from 'antd';
+
+type LoginFields = {
+  username: string;
+  password: string;
+};
+
+const LoginForm: React.FC = () => {
+  const [form] = Form.useForm<LoginFields>();
+
+  const onFinish: FormProps<LoginFields>['onFinish'] = (values) => {
+    console.log('Submitted:', values);
+  };
+
+  const onFinishFailed: FormProps<LoginFields>['onFinishFailed'] = ({ errorFields }) => {
+    console.log('Validation failed:', errorFields);
+  };
+
+  return (
+    <Form
+      form={form}
+      name="login"
+      labelCol={{ span: 6 }}
+      wrapperCol={{ span: 18 }}
+      style={{ maxWidth: 480 }}
+      initialValues={{ remember: true }}
+      onFinish={onFinish}
+      onFinishFailed={onFinishFailed}
+      autoComplete="off"
+    >
+      <Form.Item
+        label="Username"
+        name="username"
+        rules={[{ required: true, message: 'Please enter your username.' }]}
+      >
+        <Input />
+      </Form.Item>
+
+      <Form.Item
+        label="Password"
+        name="password"
+        rules={[
+          { required: true, message: 'Please enter your password.' },
+          { min: 8, message: 'Password must be at least 8 characters.' },
+        ]}
+      >
+        <Input.Password />
+      </Form.Item>
+
+      <Form.Item wrapperCol={{ offset: 6, span: 18 }}>
+        <Button type="primary" htmlType="submit">
+          Log in
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+};
+
+export default LoginForm;
+```
+
+## Common patterns
+
+### Validation rules
+
+Each `Form.Item` accepts a `rules` array. Rules execute in order and support built-in validators or custom async functions that return a Promise.
+
+<Tabs>
+  <Tab title="Built-in rules">
+    ```tsx built-in-rules.tsx
+    import { Form, Input } from 'antd';
+
+    // Email field with type validation
+    <Form.Item
+      name="email"
+      label="Email"
+      rules={[
+        { required: true },
+        { type: 'email', message: 'Enter a valid email address.' },
+      ]}
+    >
+      <Input />
+    </Form.Item>
+
+    // URL field with warning-only rule (does not block submission)
+    <Form.Item
+      name="website"
+      label="Website"
+      rules={[{ type: 'url', warningOnly: true, message: 'This does not look like a URL.' }]}
+    >
+      <Input />
+    </Form.Item>
+    ```
+  </Tab>
+  <Tab title="Custom async validator">
+    ```tsx custom-validator.tsx
+    import { Form, Input } from 'antd';
+
+    <Form.Item
+      name="username"
+      label="Username"
+      rules={[
+        { required: true },
+        {
+          validator: async (_, value) => {
+            if (value && value.includes(' ')) {
+              return Promise.reject(new Error('Username cannot contain spaces.'));
+            }
+          },
+        },
+      ]}
+    >
+      <Input />
+    </Form.Item>
+    ```
+  </Tab>
+  <Tab title="Dependent fields">
+    ```tsx dependent-fields.tsx
+    import { Form, Input } from 'antd';
+
+    <Form.Item name="password" label="Password" rules={[{ required: true }]}>
+      <Input.Password />
+    </Form.Item>
+
+    // The `dependencies` prop causes this item to re-validate when "password" changes
+    <Form.Item
+      name="confirm"
+      label="Confirm password"
+      dependencies={['password']}
+      rules={[
+        { required: true },
+        ({ getFieldValue }) => ({
+          validator(_, value) {
+            if (!value || getFieldValue('password') === value) {
+              return Promise.resolve();
+            }
+            return Promise.reject(new Error('Passwords do not match.'));
+          },
+        }),
+      ]}
+    >
+      <Input.Password />
+    </Form.Item>
+    ```
+  </Tab>
+</Tabs>
+
+### Programmatic control with useForm
+
+`Form.useForm()` returns a `FormInstance` with methods to read, set, and validate fields imperatively.
+
+```tsx programmatic-control.tsx
+import React from 'react';
+import { Button, Form, Input, Space } from 'antd';
+
+const ControlledForm: React.FC = () => {
+  const [form] = Form.useForm();
+
+  const prefill = () => {
+    form.setFieldsValue({ name: 'Alice', email: 'alice@example.com' });
+  };
+
+  const validate = async () => {
+    try {
+      const values = await form.validateFields();
+      console.log('Valid values:', values);
+    } catch (err) {
+      console.log('Validation error:', err);
+    }
+  };
+
+  return (
+    <Form form={form} layout="vertical">
+      <Form.Item name="name" label="Name" rules={[{ required: true }]}>
+        <Input />
+      </Form.Item>
+      <Form.Item name="email" label="Email" rules={[{ type: 'email' }]}>
+        <Input />
+      </Form.Item>
+      <Space>
+        <Button onClick={prefill}>Prefill</Button>
+        <Button onClick={() => form.resetFields()}>Reset</Button>
+        <Button type="primary" onClick={validate}>Validate</Button>
+      </Space>
+    </Form>
+  );
+};
+```
+
+### Dynamic field lists with Form.List
+
+`Form.List` manages arrays of fields and provides `add`, `remove`, and `move` operations through a render prop.
+
+```tsx dynamic-list.tsx
+import React from 'react';
+import { Button, Form, Input, Space } from 'antd';
+import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+
+const DynamicList: React.FC = () => (
+  <Form name="dynamic-list">
+    <Form.List name="participants">
+      {(fields, { add, remove }) => (
+        <>
+          {fields.map(({ key, name, ...restField }) => (
+            <Space key={key} align="baseline">
+              <Form.Item
+                {...restField}
+                name={[name, 'firstName']}
+                rules={[{ required: true, message: 'Missing first name' }]}
+              >
+                <Input placeholder="First name" />
+              </Form.Item>
+              <Form.Item
+                {...restField}
+                name={[name, 'lastName']}
+                rules={[{ required: true, message: 'Missing last name' }]}
+              >
+                <Input placeholder="Last name" />
+              </Form.Item>
+              <MinusCircleOutlined onClick={() => remove(name)} />
+            </Space>
+          ))}
+          <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />}>
+            Add participant
+          </Button>
+        </>
+      )}
+    </Form.List>
+
+    <Form.Item>
+      <Button type="primary" htmlType="submit">Submit</Button>
+    </Form.Item>
+  </Form>
+);
+```
+
+### Watching field values with useWatch
+
+`Form.useWatch` subscribes to a field's value and triggers a re-render when it changes, without requiring an `onChange` handler.
+
+```tsx watch-field.tsx
+import React from 'react';
+import { Form, Input, Typography } from 'antd';
+
+const WatchExample: React.FC = () => {
+  const [form] = Form.useForm();
+  const username = Form.useWatch('username', form);
+
+  return (
+    <Form form={form}>
+      <Form.Item name="username" label="Username">
+        <Input />
+      </Form.Item>
+      <Typography.Text type="secondary">
+        Preview: {username ?? '—'}
+      </Typography.Text>
+    </Form>
+  );
+};
+```
+
+## Form props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `form` | Form instance from `Form.useForm()` | `FormInstance` | auto-created |
+| `initialValues` | Initial field values. Use `setFieldsValue` to update after mount | `object` | — |
+| `layout` | Form layout direction | `horizontal` \| `vertical` \| `inline` | `horizontal` |
+| `labelCol` | Grid span for labels in horizontal layout | `{ span: number, offset?: number }` | — |
+| `wrapperCol` | Grid span for inputs in horizontal layout | `{ span: number, offset?: number }` | — |
+| `size` | Size applied to all antd form controls | `small` \| `medium` \| `large` | — |
+| `disabled` | Disable all antd form controls | `boolean` | `false` |
+| `colon` | Show `:` after each label (horizontal layout only) | `boolean` | `true` |
+| `requiredMark` | Required indicator style | `boolean` \| `'optional'` | `true` |
+| `validateTrigger` | Default validation trigger for all items | `string \| string[]` | `onChange` |
+| `scrollToFirstError` | Scroll to the first failed field on submit | `boolean \| Options` | `false` |
+| `variant` | Border style for all form controls | `outlined` \| `borderless` \| `filled` \| `underlined` | `outlined` |
+| `preserve` | Keep field values when a `Form.Item` is unmounted | `boolean` | `true` |
+| `onFinish` | Called when all validations pass on submit | `(values: T) => void` | — |
+| `onFinishFailed` | Called when any validation fails on submit | `({ values, errorFields, outOfDate }) => void` | — |
+| `onValuesChange` | Called whenever any field value changes | `(changedValues, allValues) => void` | — |
+
+## Form.Item props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `name` | Field key in the form store. Required to connect a control | `string \| number \| (string \| number)[]` | — |
+| `label` | Label text | `ReactNode` | — |
+| `rules` | Validation rules | `Rule[]` | — |
+| `dependencies` | Re-validate this item when listed fields change | `NamePath[]` | — |
+| `initialValue` | Item-level default value (lower priority than Form `initialValues`) | `any` | — |
+| `valuePropName` | Prop name bound to the value. Use `checked` for Checkbox/Switch | `string` | `value` |
+| `validateTrigger` | When to validate this field | `string \| string[]` | `onChange` |
+| `validateDebounce` | Delay in ms before validation starts | `number` | — |
+| `tooltip` | Tooltip icon shown next to the label | `ReactNode` | — |
+| `extra` | Extra hint rendered below the control | `ReactNode` | — |
+| `hasFeedback` | Show validation status icon (recommended for Input) | `boolean` | `false` |
+| `noStyle` | Remove wrapper styles; used for nested field groups | `boolean` | `false` |
+| `hidden` | Hide the item while still collecting its value | `boolean` | `false` |
+| `shouldUpdate` | Custom re-render logic for conditional fields | `boolean \| (prev, cur) => boolean` | `false` |
+
+## Validation rule options
+
+| Option | Description | Type |
+|--------|-------------|------|
+| `required` | Field must have a value | `boolean` |
+| `type` | Built-in type: `string`, `number`, `boolean`, `url`, `email`, `tel`, `array`, `object` | `string` |
+| `min` / `max` | Min/max length for strings, value for numbers, length for arrays | `number` |
+| `len` | Exact length | `number` |
+| `pattern` | Regex the value must match | `RegExp` |
+| `whitespace` | Fail when the string contains only whitespace | `boolean` |
+| `validator` | Custom async validator returning a Promise | `(rule, value) => Promise` |
+| `warningOnly` | Display warning without blocking form submission | `boolean` |
+| `message` | Custom error message text | `string \| ReactElement` |
+
+<Note>
+  `Form.Item` components with a `name` prop operate in controlled mode. Do not set `value` or `defaultValue` on the child control — use `initialValues` on the `Form` component instead. Once the form is mounted, use `form.setFieldsValue()` to change values programmatically.
+</Note>
+
+<Warning>
+  Use `valuePropName="checked"` when wrapping `Checkbox` or `Switch` inside `Form.Item`. These components use `checked` instead of `value` as their controlled prop, so the default binding will not work without this setting.
+</Warning>

@@ -1,0 +1,184 @@
+---
+title: "Alert: Inline Status Messages for Ant Design React"
+description: "Display persistent inline messages for success, info, warning, or error states with optional icons, descriptions, and a user-dismissible close button."
+---
+
+Alert renders a static, inline banner that communicates status to the user. Unlike `Message` (which auto-dismisses) or `Notification` (which appears in a corner), Alert stays in place within the page layout until the user explicitly closes it or the component is unmounted. Use it to surface form validation summaries, page-level warnings, informational announcements, or error states that must remain visible.
+
+## Basic usage
+
+Set `type` and `title` to render the appropriate color and icon set.
+
+```tsx alert-basic.tsx
+import { Alert, Space } from 'antd';
+
+export default function BasicAlert() {
+  return (
+    <Space direction="vertical" style={{ width: '100%' }}>
+      <Alert type="success" title="Changes saved successfully." />
+      <Alert type="info" title="Your account is pending verification." />
+      <Alert type="warning" title="This action cannot be undone." />
+      <Alert type="error" title="Failed to load data. Please refresh." />
+    </Space>
+  );
+}
+```
+
+## Types
+
+<Tabs>
+  <Tab title="success">
+    ```tsx alert-success.tsx
+    <Alert type="success" title="File uploaded." showIcon />
+    ```
+  </Tab>
+  <Tab title="info">
+    ```tsx alert-info.tsx
+    <Alert type="info" title="Maintenance scheduled for Saturday 02:00 UTC." showIcon />
+    ```
+  </Tab>
+  <Tab title="warning">
+    ```tsx alert-warning.tsx
+    <Alert type="warning" title="Your subscription expires in 3 days." showIcon />
+    ```
+  </Tab>
+  <Tab title="error">
+    ```tsx alert-error.tsx
+    <Alert type="error" title="Payment failed. Check your card details." showIcon />
+    ```
+  </Tab>
+</Tabs>
+
+## With description
+
+Add a `description` prop for supplementary detail below the main title. When a description is present, the icon automatically scales up.
+
+```tsx alert-description.tsx
+import { Alert } from 'antd';
+
+export default function AlertWithDescription() {
+  return (
+    <Alert
+      type="warning"
+      title="Unsaved changes"
+      description="You have unsaved changes. Leaving this page will discard them. Save your work before navigating away."
+      showIcon
+    />
+  );
+}
+```
+
+## Closable
+
+Set `closable` to `true` to show a close button. The alert animates out when dismissed. Use the `closable` object form to attach an `onClose` callback or customize the close icon.
+
+```tsx alert-closable.tsx
+import { Alert } from 'antd';
+
+export default function ClosableAlert() {
+  return (
+    <Alert
+      type="info"
+      title="You can dismiss this message."
+      closable={{
+        onClose: () => console.log('Alert closed'),
+      }}
+      showIcon
+    />
+  );
+}
+```
+
+## Banner mode
+
+Set `banner` to render the Alert as a full-width page banner (no border radius, sticks to the layout edge). In banner mode, `type` defaults to `warning` and `showIcon` defaults to `true`.
+
+```tsx alert-banner.tsx
+import { Alert } from 'antd';
+
+export default function BannerAlert() {
+  return (
+    <Alert
+      banner
+      title="System maintenance in progress. Some features may be unavailable."
+    />
+  );
+}
+```
+
+## With custom action
+
+Use the `action` prop to place custom buttons or links alongside the message — useful for "Retry" or "Learn more" calls to action.
+
+```tsx alert-action.tsx
+import { Alert, Button } from 'antd';
+
+export default function AlertWithAction() {
+  return (
+    <Alert
+      type="error"
+      title="Failed to load dashboard data."
+      showIcon
+      action={
+        <Button size="small" danger onClick={() => window.location.reload()}>
+          Retry
+        </Button>
+      }
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Description | Type | Default |
+|---|---|---|---|
+| `type` | Visual style; controls color and default icon | `'success' \| 'info' \| 'warning' \| 'error'` | `'info'` |
+| `title` | Primary message text | `ReactNode` | — |
+| `description` | Secondary detail text shown below the title | `ReactNode` | — |
+| `showIcon` | Display the type icon | `boolean` | `false` (`true` in banner mode) |
+| `icon` | Custom icon node; only effective when `showIcon` is `true` | `ReactNode` | — |
+| `closable` | Show close button; pass an object to add `onClose`, `afterClose`, or a custom `closeIcon` | `boolean \| ClosableType` | `false` |
+| `banner` | Render as a full-width page banner | `boolean` | `false` |
+| `action` | Custom action element displayed in the trailing area | `ReactNode` | — |
+| `style` | Inline styles for the root element | `CSSProperties` | — |
+| `className` | Custom CSS class | `string` | — |
+| `classNames` | Per-slot class name overrides | `Record<SemanticDOM, string>` | — |
+| `styles` | Per-slot inline style overrides | `Record<SemanticDOM, CSSProperties>` | — |
+
+### ClosableType
+
+| Prop | Description | Type | Default |
+|---|---|---|---|
+| `closeIcon` | Custom close button icon | `ReactNode` | — |
+| `onClose` | Called when the close button is clicked | `(e: MouseEvent) => void` | — |
+| `afterClose` | Called after the close animation finishes | `() => void` | — |
+
+### Alert.ErrorBoundary
+
+Wrap a subtree to catch and display render errors.
+
+| Prop | Description | Type | Default |
+|---|---|---|---|
+| `title` | Custom error heading | `ReactNode` | The caught error message |
+| `description` | Custom error detail | `ReactNode` | The error stack trace |
+
+```tsx error-boundary.tsx
+import { Alert } from 'antd';
+
+export default function SafeComponent() {
+  return (
+    <Alert.ErrorBoundary title="Something went wrong.">
+      <MyRiskyComponent />
+    </Alert.ErrorBoundary>
+  );
+}
+```
+
+<Note>
+  When both `title` and `description` are present, the icon displayed is larger (32 px instead of 24 px) to maintain visual balance. Set `showIcon` explicitly if you want the icon regardless of whether `description` is provided.
+</Note>
+
+<Warning>
+  The `message` prop is deprecated in favor of `title`. The `onClose` and `afterClose` root-level props are deprecated in favor of the `closable` object. Migrate to the new APIs to avoid warnings in development mode.
+</Warning>

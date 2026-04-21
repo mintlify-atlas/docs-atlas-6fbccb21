@@ -1,0 +1,316 @@
+---
+title: "Server-Side Rendering (SSR) with Ant Design React"
+description: "Configure Ant Design CSS-in-JS for SSR with inline style extraction or static CSS export. Includes Next.js App Router and on-demand extraction examples."
+---
+
+Ant Design uses a CSS-in-JS engine under the hood. When rendering on the server you must ensure styles are either inlined into the HTML document or pre-baked into a static CSS file before the page is served. Skipping this step causes a flash of unstyled content on first load. There are two complementary strategies: **inline style extraction** (zero extra network requests, larger HTML) and **whole export** (traditional cacheable CSS file, requires a build-time script).
+
+<Warning>
+  Static methods such as `message`, `notification`, and `Modal.confirm` are rendered into an independent DOM node via `ReactDOM.render`. They cannot access React context from `ConfigProvider`, which means SSR-injected theme tokens and `prefixCls` overrides will not apply. Replace them with the hook-based equivalents — `message.useMessage`, `notification.useNotification`, and `Modal.useModal` — or wrap your app with `App` and use `App.useApp`.
+</Warning>
+
+## Approach 1: Inline style
+
+Use `@ant-design/cssinjs` to capture the styles produced during a server render and embed them directly into the response HTML.
+
+<Steps>
+  <Step title="Install the CSS-in-JS package">
+    ```bash
+    npm install @ant-design/cssinjs
+    ```
+  </Step>
+
+  <Step title="Wrap your render with StyleProvider">
+    Create a cache, pass it to `StyleProvider`, render your tree to a string, then call `extractStyle` to pull the collected CSS out of the cache.
+
+    ```tsx
+    import React from 'react';
+    import { createCache, extractStyle, StyleProvider } from '@ant-design/cssinjs';
+    import type Entity from '@ant-design/cssinjs/es/Cache';
+    import { renderToString } from 'react-dom/server';
+
+    const App = () => {
+      // SSR Render
+      const cache = React.useMemo<Entity>(() => createCache(), []);
+      const html = renderToString(
+        <StyleProvider cache={cache}>
+          <MyApp />
+        </StyleProvider>,
+      );
+
+      // Grab style from cache
+      const styleText = extractStyle(cache);
+
+      // Mix with style
+      return `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            ${styleText}
+          </head>
+          <body>
+            <div id="root">${html}</div>
+          </body>
+        </html>
+      `;
+    };
+
+    export default App;
+    ```
+  </Step>
+</Steps>
+
+### Next.js App Router (on-demand extraction)
+
+For Next.js you can hook into `_document.tsx` to extract only the styles used by each page request, writing them out as hashed CSS files so they benefit from browser caching.
+
+<Steps>
+  <Step title="Create the extraction helper">
+    Add `scripts/genAntdCss.tsx`:
+
+    ```tsx
+    // scripts/genAntdCss.tsx
+    import { createHash } from 'crypto';
+    import fs from 'fs';
+    import path from 'path';
+    import { extractStyle } from '@ant-design/cssinjs';
+    import type Entity from '@ant-design/cssinjs/lib/Cache';
+
+    export interface DoExtraStyleOptions {
+      cache: Entity;
+      dir?: string;
+      baseFileName?: string;
+    }
+
+    export const doExtraStyle = (opts: DoExtraStyleOptions) => {
+      const { cache, dir = 'antd-output', baseFileName = 'antd.min' } = opts;
+
+      const baseDir = path.resolve(__dirname, '../../static/css');
+      const outputCssPath = path.join(baseDir, dir);
+
+      if (!fs.existsSync(outputCssPath)) {
+        fs.mkdirSync(outputCssPath, { recursive: true });
+      }
+
+      const css = extractStyle(cache, true);
+
+      if (!css) {
+        return '';
+      }
+
+      const md5 = createHash('md5');
+      const hash = md5.update(css).digest('hex');
+      const fileName = `${baseFileName}.${hash.substring(0, 8)}.css`;
+      const fullpath = path.join(outputCssPath, fileName);
+      const res = `_next/static/css/${dir}/${fileName}`;
+
+      if (fs.existsSync(fullpath)) {
+        return res;
+      }
+
+      fs.writeFileSync(fullpath, css);
+      return res;
+    };
+    ```
+  </Step>
+
+  <Step title="Inject styles in _document.tsx">
+    ```tsx
+    // _document.tsx
+    import { createCache, StyleProvider } from '@ant-design/cssinjs';
+    import type { DocumentContext } from 'next/document';
+    import Document, { Head, Html, Main, NextScript } from 'next/document';
+
+    import { doExtraStyle } from '../scripts/genAntdCss';
+
+    export default class MyDocument extends Document {
+      static async getInitialProps(ctx: DocumentContext) {
+        const cache = createCache();
+        let fileName = '';
+        const originalRenderPage = ctx.renderPage;
+        ctx.renderPage = () =>
+          originalRenderPage({
+            enhanceApp: (App) => (props) => (
+              <StyleProvider cache={cache}>
+                <App {...props} />
+              </StyleProvider>
+            ),
+          });
+
+        const initialProps = await Document.getInitialProps(ctx);
+        // 1.1 extract style which had been used
+        fileName = doExtraStyle({ cache });
+        return {
+          ...initialProps,
+          styles: (
+            <>
+              {initialProps.styles}
+              {/* 1.2 inject css */}
+              {fileName && <link rel="stylesheet" href={`/${fileName}`} />}
+            </>
+          ),
+        };
+      }
+
+      render() {
+        return (
+          <Html lang="en">
+            <Head />
+            <body>
+              <Main />
+              <NextScript />
+            </body>
+          </Html>
+        );
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+## Approach 2: Whole export (static CSS file)
+
+Pre-bake all antd styles into a single CSS file at build time. The file can be cached by browsers across pages, just like a traditional stylesheet.
+
+<Steps>
+  <Step title="Install build-time dependencies">
+    ```bash
+    npm install ts-node tslib cross-env --save-dev
+    ```
+  </Step>
+
+  <Step title="Add tsconfig.node.json">
+    ```json
+    {
+      "compilerOptions": {
+        "strictNullChecks": true,
+        "module": "NodeNext",
+        "jsx": "react",
+        "esModuleInterop": true
+      },
+      "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"]
+    }
+    ```
+  </Step>
+
+  <Step title="Add scripts/genAntdCss.tsx">
+    ```tsx
+    // scripts/genAntdCss.tsx
+    import fs from 'fs';
+    import { extractStyle } from '@ant-design/static-style-extract';
+
+    const outputPath = './public/antd.min.css';
+
+    const css = extractStyle();
+
+    fs.writeFileSync(outputPath, css);
+    ```
+  </Step>
+
+  <Step title="Wire up package.json scripts">
+    ```json
+    {
+      "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint",
+        "predev": "ts-node --project ./tsconfig.node.json ./scripts/genAntdCss.tsx",
+        "prebuild": "cross-env NODE_ENV=production ts-node --project ./tsconfig.node.json ./scripts/genAntdCss.tsx"
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Import the generated file in pages/_app.tsx">
+    ```tsx
+    import { StyleProvider } from '@ant-design/cssinjs';
+    import type { AppProps } from 'next/app';
+
+    import '../public/antd.min.css'; // add this line
+    import '../styles/globals.css';
+
+    export default function App({ Component, pageProps }: AppProps) {
+      return (
+        <StyleProvider hashPriority="high">
+          <Component {...pageProps} />
+        </StyleProvider>
+      );
+    }
+    ```
+  </Step>
+</Steps>
+
+### Custom and mixed themes
+
+If your project uses a custom or multi-theme setup, pass a render function to `extractStyle` that wraps the node in the relevant `ConfigProvider` trees.
+
+<CodeGroup>
+
+```tsx custom theme
+import { extractStyle } from '@ant-design/static-style-extract';
+import { ConfigProvider } from 'antd';
+
+const cssText = extractStyle((node) => (
+  <ConfigProvider
+    theme={{
+      token: {
+        colorPrimary: 'red',
+      },
+    }}
+  >
+    {node}
+  </ConfigProvider>
+));
+```
+
+```tsx mixed themes
+import fs from 'fs';
+import React from 'react';
+import { extractStyle } from '@ant-design/static-style-extract';
+import { ConfigProvider } from 'antd';
+
+const outputPath = './public/antd.min.css';
+
+const testGreenColor = '#008000';
+const testRedColor = '#ff0000';
+
+const css = extractStyle((node) => (
+  <>
+    <ConfigProvider
+      theme={{
+        token: {
+          colorBgBase: testGreenColor,
+        },
+      }}
+    >
+      {node}
+    </ConfigProvider>
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: testGreenColor,
+        },
+      }}
+    >
+      <ConfigProvider
+        theme={{
+          token: {
+            colorBgBase: testRedColor,
+          },
+        }}
+      >
+        {node}
+      </ConfigProvider>
+    </ConfigProvider>
+  </>
+));
+
+fs.writeFileSync(outputPath, css);
+```
+
+</CodeGroup>
+
+<Note>
+  For more details on `static-style-extract`, see the [static-style-extract GitHub repository](https://github.com/ant-design/static-style-extract) and the [Next.js inline style example](https://github.com/ant-design/ant-design-examples/tree/main/examples/with-nextjs-inline-style).
+</Note>

@@ -1,0 +1,243 @@
+---
+title: "Typography: Ant Design Text and Heading Components"
+description: "Style all text with Ant Design Typography — Title, Text, Paragraph, and Link components with copyable, editable, and ellipsis capabilities."
+---
+
+The `Typography` component group provides building blocks for all text content: headings (`Typography.Title`), inline text (`Typography.Text`), block paragraphs (`Typography.Paragraph`), and links (`Typography.Link`). Beyond basic rendering, these components support copyable text, inline editing, ellipsis with expand/collapse, and semantic text styles like `strong`, `code`, and `mark`.
+
+## Basic usage
+
+Wrap content in a `<Typography>` container to apply consistent spacing and font styling:
+
+```tsx basic-typography.tsx
+import React from 'react';
+import { Typography } from 'antd';
+
+const { Title, Paragraph, Text, Link } = Typography;
+
+const App: React.FC = () => (
+  <Typography>
+    <Title>Page Title</Title>
+    <Paragraph>
+      This is a paragraph of body text. It can contain <Text strong>bold</Text>,{' '}
+      <Text italic>italic</Text>, <Text code>inline code</Text>, and{' '}
+      <Text mark>highlighted</Text> content.
+    </Paragraph>
+    <Title level={2}>Section heading</Title>
+    <Paragraph>
+      Visit the <Link href="https://ant.design">Ant Design website</Link> for more.
+    </Paragraph>
+  </Typography>
+);
+
+export default App;
+```
+
+## Title levels
+
+`Typography.Title` renders `h1`–`h5` based on the `level` prop:
+
+```tsx title-levels.tsx
+import React from 'react';
+import { Typography } from 'antd';
+
+const { Title } = Typography;
+
+const App: React.FC = () => (
+  <>
+    <Title level={1}>h1 — Page title</Title>
+    <Title level={2}>h2 — Section heading</Title>
+    <Title level={3}>h3 — Subsection</Title>
+    <Title level={4}>h4 — Card title</Title>
+    <Title level={5}>h5 — Small title</Title>
+  </>
+);
+
+export default App;
+```
+
+## Text styles
+
+`Typography.Text` supports many inline visual modifiers:
+
+```tsx text-styles.tsx
+import React from 'react';
+import { Typography, Flex } from 'antd';
+
+const { Text } = Typography;
+
+const App: React.FC = () => (
+  <Flex vertical gap="small">
+    <Text>Default</Text>
+    <Text type="secondary">Secondary</Text>
+    <Text type="success">Success</Text>
+    <Text type="warning">Warning</Text>
+    <Text type="danger">Danger</Text>
+    <Text disabled>Disabled</Text>
+    <Text strong>Bold</Text>
+    <Text italic>Italic</Text>
+    <Text underline>Underline</Text>
+    <Text delete>Strikethrough</Text>
+    <Text code>inline code</Text>
+    <Text mark>Highlighted</Text>
+    <Text keyboard>Ctrl</Text>
+  </Flex>
+);
+
+export default App;
+```
+
+## Copyable text
+
+Add a copy icon to any text component with the `copyable` prop. Customize the copy source, icon, and tooltip:
+
+```tsx copyable.tsx
+import React from 'react';
+import { Typography } from 'antd';
+
+const { Paragraph, Text } = Typography;
+
+const App: React.FC = () => (
+  <>
+    {/* Default copyable — copies the rendered text */}
+    <Paragraph copyable>Click the icon to copy this text.</Paragraph>
+
+    {/* Copy a different value than what is displayed */}
+    <Text copyable={{ text: 'Custom copied value' }}>
+      Display text (copies different content)
+    </Text>
+  </>
+);
+
+export default App;
+```
+
+## Editable text
+
+Add `editable` to allow inline editing. The component switches to a `<textarea>` on click:
+
+```tsx editable.tsx
+import React, { useState } from 'react';
+import { Typography } from 'antd';
+
+const { Paragraph } = Typography;
+
+const App: React.FC = () => {
+  const [value, setValue] = useState('Click to edit this text.');
+
+  return (
+    <Paragraph editable={{ onChange: setValue }}>
+      {value}
+    </Paragraph>
+  );
+};
+
+export default App;
+```
+
+## Ellipsis
+
+Truncate long text to a set number of rows with optional expand/collapse:
+
+```tsx ellipsis.tsx
+import React from 'react';
+import { Typography } from 'antd';
+
+const { Paragraph } = Typography;
+
+const longText =
+  'Ant Design is an enterprise-class UI design language and React UI library. ' +
+  'It is widely used in background applications, providing a set of high-quality ' +
+  'React components out of the box.';
+
+const App: React.FC = () => (
+  <>
+    {/* Truncate to 2 rows */}
+    <Paragraph ellipsis={{ rows: 2 }}>
+      {longText}
+    </Paragraph>
+
+    {/* Truncate with expand/collapse toggle */}
+    <Paragraph ellipsis={{ rows: 2, expandable: 'collapsible' }}>
+      {longText}
+    </Paragraph>
+  </>
+);
+
+export default App;
+```
+
+## API
+
+### Typography.Title
+
+| Property | Description | Type | Default |
+|----------|-------------|------|---------|
+| `level` | Heading level — maps to `h1`–`h5` | `1` \| `2` \| `3` \| `4` \| `5` | `1` |
+| `type` | Text color intent | `secondary` \| `success` \| `warning` \| `danger` | - |
+| `copyable` | Show copy icon | `boolean` \| copyable config | `false` |
+| `editable` | Allow inline editing | `boolean` \| editable config | `false` |
+| `ellipsis` | Truncate overflow text | `boolean` \| ellipsis config | `false` |
+| `mark` | Highlight background | boolean | `false` |
+| `underline` | Underline style | boolean | `false` |
+| `delete` | Strikethrough style | boolean | `false` |
+| `italic` | Italic style | boolean | `false` |
+| `disabled` | Muted/disabled appearance | boolean | `false` |
+| `onClick` | Click handler | `(event) => void` | - |
+
+### Typography.Text
+
+| Property | Description | Type | Default |
+|----------|-------------|------|---------|
+| `type` | Text color intent | `secondary` \| `success` \| `warning` \| `danger` | - |
+| `strong` | Bold style | boolean | `false` |
+| `italic` | Italic style | boolean | `false` |
+| `underline` | Underline style | boolean | `false` |
+| `delete` | Strikethrough style | boolean | `false` |
+| `code` | Inline code style | boolean | `false` |
+| `mark` | Highlight background | boolean | `false` |
+| `keyboard` | Keyboard key style | boolean | `false` |
+| `copyable` | Show copy icon | `boolean` \| copyable config | `false` |
+| `editable` | Allow inline editing | `boolean` \| editable config | `false` |
+| `ellipsis` | Truncate with no expand option (fixed-width text) | `boolean` \| ellipsis config | `false` |
+| `disabled` | Muted/disabled appearance | boolean | `false` |
+| `onClick` | Click handler | `(event) => void` | - |
+
+### Typography.Paragraph
+
+`Typography.Paragraph` supports all the same props as `Typography.Text`, plus `ellipsis` supports `rows` and `expandable`.
+
+### `copyable` config
+
+| Property | Description | Type | Default |
+|----------|-------------|------|---------|
+| `text` | Custom text to copy | `string` \| `() => string \| Promise<string>` | - |
+| `icon` | Custom icon pair `[copyIcon, copiedIcon]` | `[ReactNode, ReactNode]` | - |
+| `tooltips` | Custom tooltip labels; `false` hides tooltips | `[ReactNode, ReactNode]` \| `false` | `['Copy', 'Copied']` |
+| `onCopy` | Called when text is copied | `function` | - |
+
+### `editable` config
+
+| Property | Description | Type | Default |
+|----------|-------------|------|---------|
+| `editing` | Control edit state externally | boolean | `false` |
+| `maxLength` | Max characters in the textarea | number | - |
+| `autoSize` | Textarea auto-size config | `boolean` \| `{ minRows, maxRows }` | - |
+| `onChange` | Called when input changes | `function(value: string)` | - |
+| `onStart` | Called when entering edit state | function | - |
+| `onEnd` | Called when pressing Enter to exit | function | - |
+| `onCancel` | Called when pressing Escape to cancel | function | - |
+| `triggerType` | Edit triggers | `Array<'icon' \| 'text'>` | `['icon']` |
+
+### `ellipsis` config
+
+| Property | Description | Type | Default |
+|----------|-------------|------|---------|
+| `rows` | Max visible rows before truncating | number | - |
+| `expandable` | Allow expanding the text | `boolean` \| `'collapsible'` | - |
+| `suffix` | Text appended before the ellipsis | string | - |
+| `tooltip` | Show tooltip with full text on hover | `ReactNode` \| TooltipProps | - |
+| `expanded` | Controlled expand state | boolean | - |
+| `defaultExpanded` | Initial expand state | boolean | - |
+| `onExpand` | Called when expand/collapse is toggled | `(event, { expanded: boolean }) => void` | - |
+| `onEllipsis` | Called when ellipsis state changes | `function(ellipsis: boolean)` | - |

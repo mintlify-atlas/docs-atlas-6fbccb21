@@ -1,0 +1,235 @@
+---
+title: "Modal: Dialog Overlays for Ant Design React"
+description: "Display a floating dialog over the current page to collect user input, confirm actions, or show information without navigating away."
+---
+
+Modal is a dialog component that overlays the current page, keeping users in context while requiring interaction. Use it when you need to collect user confirmation, display a form, or present information that demands attention before the user continues.
+
+<Tip>
+  For simple confirmation dialogs, prefer `App.useApp().modal` over the static `Modal.confirm()`. The hook-based approach inherits your `ConfigProvider` theme and locale settings.
+</Tip>
+
+## Basic usage
+
+Control visibility with the `open` prop. Close the modal by setting `open` to `false` inside `onCancel`.
+
+```tsx basic-modal.tsx
+import React, { useState } from 'react';
+import { Button, Modal } from 'antd';
+
+export default function BasicModal() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button type="primary" onClick={() => setOpen(true)}>
+        Open Modal
+      </Button>
+      <Modal
+        title="Confirm your action"
+        open={open}
+        onOk={() => setOpen(false)}
+        onCancel={() => setOpen(false)}
+      >
+        <p>Are you sure you want to proceed?</p>
+      </Modal>
+    </>
+  );
+}
+```
+
+## Variants
+
+<Tabs>
+  <Tab title="Controlled dialog">
+    Use `open` + `onCancel` + `onOk` for full control. Set `confirmLoading` while an async operation runs so the OK button shows a spinner.
+
+    ```tsx controlled-modal.tsx
+    import React, { useState } from 'react';
+    import { Button, Modal } from 'antd';
+
+    export default function AsyncModal() {
+      const [open, setOpen] = useState(false);
+      const [loading, setLoading] = useState(false);
+
+      const handleOk = async () => {
+        setLoading(true);
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        setLoading(false);
+        setOpen(false);
+      };
+
+      return (
+        <>
+          <Button onClick={() => setOpen(true)}>Open</Button>
+          <Modal
+            title="Save changes"
+            open={open}
+            confirmLoading={loading}
+            onOk={handleOk}
+            onCancel={() => setOpen(false)}
+          >
+            <p>Changes will be saved to the server.</p>
+          </Modal>
+        </>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="Modal.confirm (static)">
+    `Modal.confirm()` is a static imperative API. It does **not** inherit the active `ConfigProvider` theme or locale, so it is best used only in non-React contexts (e.g., plain utility functions).
+
+    ```tsx static-confirm.tsx
+    import { Button, Modal } from 'antd';
+
+    export default function StaticConfirm() {
+      const showConfirm = () => {
+        Modal.confirm({
+          title: 'Delete this record?',
+          content: 'This action cannot be undone.',
+          onOk() {
+            console.log('Deleted');
+          },
+        });
+      };
+
+      return <Button danger onClick={showConfirm}>Delete</Button>;
+    }
+    ```
+  </Tab>
+  <Tab title="App.useApp (recommended)">
+    `App.useApp().modal` is the recommended way to show programmatic dialogs inside a React component tree. It is context-aware and respects your `ConfigProvider` settings.
+
+    ```tsx app-use-modal.tsx
+    import { App, Button } from 'antd';
+
+    function DeleteButton() {
+      const { modal } = App.useApp();
+
+      const confirm = () => {
+        modal.confirm({
+          title: 'Delete this record?',
+          content: 'This action cannot be undone.',
+          onOk() {
+            console.log('Deleted');
+          },
+        });
+      };
+
+      return <Button danger onClick={confirm}>Delete</Button>;
+    }
+
+    export default function Page() {
+      return (
+        <App>
+          <DeleteButton />
+        </App>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="Modal.useModal hook">
+    When you need context access (e.g., Redux store, custom contexts) but cannot use `App`, use `Modal.useModal()` and render the returned `contextHolder`.
+
+    ```tsx use-modal-hook.tsx
+    import React from 'react';
+    import { Button, Modal } from 'antd';
+
+    export default function HookModal() {
+      const [modal, contextHolder] = Modal.useModal();
+
+      const showModal = () => {
+        modal.confirm({
+          title: 'Context-aware confirm',
+          content: 'This dialog inherits the surrounding context.',
+        });
+      };
+
+      return (
+        <>
+          {contextHolder}
+          <Button onClick={showModal}>Open via hook</Button>
+        </>
+      );
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## No-footer modal
+
+Set `footer={null}` to remove the default OK / Cancel buttons and provide your own actions inside the body.
+
+```tsx no-footer.tsx
+import React, { useState } from 'react';
+import { Button, Modal, Space } from 'antd';
+
+export default function CustomFooterModal() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Open</Button>
+      <Modal title="Custom actions" open={open} footer={null} onCancel={() => setOpen(false)}>
+        <p>Handle your own actions below.</p>
+        <Space style={{ marginTop: 16 }}>
+          <Button onClick={() => setOpen(false)}>Back</Button>
+          <Button type="primary" onClick={() => setOpen(false)}>
+            Submit
+          </Button>
+        </Space>
+      </Modal>
+    </>
+  );
+}
+```
+
+## Props
+
+### Modal
+
+| Prop | Description | Type | Default |
+|---|---|---|---|
+| `open` | Whether the dialog is visible | `boolean` | `false` |
+| `title` | Dialog title | `ReactNode` | — |
+| `onOk` | OK button click handler | `(e: MouseEvent) => void` | — |
+| `onCancel` | Close handler (mask click, close icon, Cancel button, Esc key) | `(e: MouseEvent \| KeyboardEvent) => void` | — |
+| `confirmLoading` | Show loading spinner on the OK button | `boolean` | `false` |
+| `footer` | Footer content; set `null` to hide default buttons | `ReactNode \| (originNode, extra) => ReactNode` | OK + Cancel buttons |
+| `centered` | Vertically center the dialog | `boolean` | `false` |
+| `width` | Dialog width | `string \| number` | `520` |
+| `okText` | OK button label | `ReactNode` | `"OK"` |
+| `cancelText` | Cancel button label | `ReactNode` | `"Cancel"` |
+| `okButtonProps` | Props forwarded to the OK button | `ButtonProps` | — |
+| `cancelButtonProps` | Props forwarded to the Cancel button | `ButtonProps` | — |
+| `closable` | Show the top-right close button | `boolean \| ClosableType` | `true` |
+| `keyboard` | Close on Esc key | `boolean` | `true` |
+| `mask` | Backdrop settings | `boolean \| { enabled?, blur?, closable? }` | `true` |
+| `destroyOnHidden` | Unmount children when closed | `boolean` | `false` |
+| `zIndex` | CSS `z-index` | `number` | `1000` |
+| `afterClose` | Called after the close animation finishes | `() => void` | — |
+| `getContainer` | Mount target element | `HTMLElement \| () => HTMLElement \| false` | `document.body` |
+
+### Modal.method() (confirm / info / success / warning / error)
+
+These static methods accept the same configuration object. Key differences from `<Modal>`:
+
+| Prop | Description | Type | Default |
+|---|---|---|---|
+| `title` | Dialog title | `ReactNode` | — |
+| `content` | Body content | `ReactNode` | — |
+| `icon` | Leading icon | `ReactNode` | `<ExclamationCircleFilled />` |
+| `onOk` | OK callback (receives close function; returning a Promise delays close) | `(close) => void \| Promise` | — |
+| `onCancel` | Cancel callback | `(close) => void \| Promise` | — |
+| `okText` | OK button label | `string` | `"OK"` |
+| `cancelText` | Cancel button label | `string` | `"Cancel"` |
+| `centered` | Vertically center the dialog | `boolean` | `false` |
+| `width` | Dialog width | `string \| number` | `416` |
+
+<Note>
+  Call `Modal.destroyAll()` to close every open confirmation dialog at once — useful in router change handlers.
+</Note>
+
+<Warning>
+  Static methods (`Modal.confirm`, `Modal.info`, etc.) create React roots outside your component tree and therefore **cannot access** `ConfigProvider` theme, locale, or custom contexts. Use `App.useApp().modal` or `Modal.useModal()` for context-aware dialogs.
+</Warning>

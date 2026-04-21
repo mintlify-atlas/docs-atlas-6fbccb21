@@ -1,0 +1,243 @@
+---
+title: "Select: Searchable Dropdown and Multi-Select in React"
+description: "Ant Design Select renders a dropdown for single or multi-value selection with search filtering, option groups, tags mode, and virtual scrolling."
+---
+
+`Select` is an elegant alternative to the native `<select>` element. It supports single selection, multi-selection (`mode="multiple"`), free-text tags (`mode="tags"`), option grouping, search filtering, and virtual scrolling for large datasets. When there are fewer than five options, consider using `Radio` or `Checkbox` instead.
+
+## Basic usage
+
+Supply an `options` array with `label` and `value` entries. Use `onChange` to react to selection changes.
+
+```tsx basic-select.tsx
+import React, { useState } from 'react';
+import { Select } from 'antd';
+
+const options = [
+  { label: 'Alice', value: 'alice' },
+  { label: 'Bob', value: 'bob' },
+  { label: 'Charlie', value: 'charlie' },
+];
+
+const BasicSelect: React.FC = () => {
+  const [selected, setSelected] = useState<string | undefined>(undefined);
+
+  return (
+    <Select
+      style={{ width: 240 }}
+      placeholder="Select a person"
+      options={options}
+      value={selected}
+      onChange={setSelected}
+      allowClear
+    />
+  );
+};
+
+export default BasicSelect;
+```
+
+## Common patterns
+
+### Multi-select
+
+Set `mode="multiple"` to allow selecting more than one option. The value becomes an array.
+
+```tsx multi-select.tsx
+import React, { useState } from 'react';
+import { Select } from 'antd';
+
+const skills = [
+  { label: 'React', value: 'react' },
+  { label: 'TypeScript', value: 'typescript' },
+  { label: 'Node.js', value: 'nodejs' },
+  { label: 'GraphQL', value: 'graphql' },
+];
+
+const MultiSelect: React.FC = () => {
+  const [values, setValues] = useState<string[]>([]);
+
+  return (
+    <Select
+      mode="multiple"
+      style={{ width: '100%' }}
+      placeholder="Select skills"
+      options={skills}
+      value={values}
+      onChange={setValues}
+      maxCount={3}
+    />
+  );
+};
+```
+
+### Search and filter
+
+Enable `showSearch` to let users filter options by typing. Set `optionFilterProp="label"` when using the `options` array so filtering matches the display text rather than the value.
+
+```tsx searchable-select.tsx
+import React from 'react';
+import { Select } from 'antd';
+
+const countries = [
+  { label: 'United States', value: 'us' },
+  { label: 'United Kingdom', value: 'uk' },
+  { label: 'Germany', value: 'de' },
+  { label: 'Japan', value: 'jp' },
+  { label: 'Australia', value: 'au' },
+];
+
+const SearchableSelect: React.FC = () => (
+  <Select
+    showSearch
+    style={{ width: 280 }}
+    placeholder="Search country"
+    options={countries}
+    optionFilterProp="label"
+    onChange={(value) => console.log('Selected:', value)}
+  />
+);
+```
+
+### Option groups
+
+Use `OptGroup` or nest `options` arrays inside group objects to group related options.
+
+```tsx grouped-options.tsx
+import React from 'react';
+import { Select } from 'antd';
+
+const groupedOptions = [
+  {
+    label: 'Frontend',
+    options: [
+      { label: 'React', value: 'react' },
+      { label: 'Vue', value: 'vue' },
+    ],
+  },
+  {
+    label: 'Backend',
+    options: [
+      { label: 'Node.js', value: 'nodejs' },
+      { label: 'Django', value: 'django' },
+    ],
+  },
+];
+
+const GroupedSelect: React.FC = () => (
+  <Select
+    style={{ width: 240 }}
+    placeholder="Pick a framework"
+    options={groupedOptions}
+  />
+);
+```
+
+### Tags mode
+
+`mode="tags"` lets users type custom values that are not in the option list, in addition to selecting existing ones.
+
+```tsx tags-mode.tsx
+import React, { useState } from 'react';
+import { Select } from 'antd';
+
+const TagsSelect: React.FC = () => {
+  const [tags, setTags] = useState<string[]>([]);
+
+  return (
+    <Select
+      mode="tags"
+      style={{ width: '100%' }}
+      placeholder="Add tags"
+      value={tags}
+      onChange={setTags}
+      tokenSeparators={[',']}
+    />
+  );
+};
+```
+
+### Loading remote options
+
+Show a loading state while fetching options from an API.
+
+```tsx async-select.tsx
+import React, { useEffect, useState } from 'react';
+import { Select } from 'antd';
+
+interface User {
+  id: number;
+  name: string;
+}
+
+const AsyncSelect: React.FC = () => {
+  const [options, setOptions] = useState<{ label: string; value: number }[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch('/api/users')
+      .then((res) => res.json())
+      .then((users: User[]) => {
+        setOptions(users.map((u) => ({ label: u.name, value: u.id })));
+        setLoading(false);
+      });
+  }, []);
+
+  return (
+    <Select
+      style={{ width: 280 }}
+      placeholder="Select a user"
+      loading={loading}
+      options={options}
+    />
+  );
+};
+```
+
+## Props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `options` | Options array. Preferred over JSX `Option` children | `{ label, value, disabled? }[]` | — |
+| `value` | Controlled selected value | `string \| string[] \| number \| number[]` | — |
+| `defaultValue` | Uncontrolled initial value | `string \| string[] \| number \| number[]` | — |
+| `mode` | Enable multi-select or free-text tags | `'multiple'` \| `'tags'` | — |
+| `placeholder` | Placeholder text | `ReactNode` | — |
+| `disabled` | Disable the select | `boolean` | `false` |
+| `loading` | Show loading spinner | `boolean` | `false` |
+| `allowClear` | Show clear button | `boolean \| { clearIcon: ReactNode }` | `false` |
+| `showSearch` | Enable option filtering by typing | `boolean \| { optionFilterProp, filterOption, onSearch }` | `false` (single), `true` (multiple) |
+| `size` | Select box size | `large` \| `medium` \| `small` | `medium` |
+| `status` | Validation status style | `'error'` \| `'warning'` | — |
+| `variant` | Border style | `outlined` \| `borderless` \| `filled` \| `underlined` | `outlined` |
+| `maxCount` | Maximum items selectable in `multiple` or `tags` mode | `number` | — |
+| `maxTagCount` | Maximum tags to display before collapsing | `number \| 'responsive'` | — |
+| `fieldNames` | Customize the `label`, `value`, and `options` field keys | `object` | `{ label, value, options }` |
+| `labelInValue` | Return `{ value, label }` objects instead of raw values | `boolean` | `false` |
+| `listHeight` | Max height of the dropdown list | `number` | `256` |
+| `notFoundContent` | Content shown when no options match | `ReactNode` | `'Not Found'` |
+| `open` | Controlled open state | `boolean` | — |
+| `placement` | Dropdown placement | `bottomLeft` \| `bottomRight` \| `topLeft` \| `topRight` | `bottomLeft` |
+| `popupMatchSelectWidth` | Match dropdown width to input width | `boolean \| number` | `true` |
+| `popupRender` | Customize dropdown content | `(originNode) => ReactNode` | — |
+| `tagRender` | Custom tag renderer (multiple/tags mode) | `(props) => ReactNode` | — |
+| `virtual` | Enable virtual scrolling for large lists | `boolean` | `true` |
+| `onChange` | Called when selection changes | `(value, option) => void` | — |
+| `onSearch` | Called when search input changes | `(value: string) => void` | — |
+| `onClear` | Called when the clear button is clicked | `() => void` | — |
+| `onOpenChange` | Called when the dropdown opens or closes | `(open: boolean) => void` | — |
+| `onSelect` | Called when a single option is selected | `(value, option) => void` | — |
+| `onDeselect` | Called when an option is deselected (multiple/tags mode) | `(value) => void` | — |
+
+<Note>
+  Prefer the `options` prop over JSX `<Select.Option>` children. The prop-based approach has better rendering performance and is more predictable when options change dynamically.
+</Note>
+
+<Tip>
+  When filtering options with `showSearch`, set `optionFilterProp="label"` if you pass an `options` array. The default `optionFilterProp` is `value`, which filters on the raw value string rather than the displayed text.
+</Tip>
+
+<Warning>
+  The `dropdownRender`, `dropdownStyle`, `dropdownClassName`, `bordered`, and `onDropdownVisibleChange` props are deprecated. Use `popupRender`, `styles.popup.root`, `classNames.popup.root`, `variant`, and `onOpenChange` instead.
+</Warning>

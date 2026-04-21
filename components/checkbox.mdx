@@ -1,0 +1,231 @@
+---
+title: "Checkbox: Multi-Option and Binary Selection in React"
+description: "Ant Design Checkbox collects user choices with support for controlled state, indeterminate display, grouped selection, and Form.Item integration."
+---
+
+`Checkbox` marks a binary choice that the user must explicitly submit — unlike `Switch`, which applies changes immediately. Use a single `Checkbox` for yes/no fields such as "I agree to the terms". Use `Checkbox.Group` to present a set of options where zero or more can be selected simultaneously.
+
+## Basic usage
+
+Use `checked` and `onChange` for a controlled checkbox. Set `defaultChecked` for an uncontrolled initial state.
+
+```tsx basic-checkbox.tsx
+import React, { useState } from 'react';
+import { Checkbox } from 'antd';
+import type { CheckboxChangeEvent } from 'antd/es/checkbox';
+
+const BasicCheckbox: React.FC = () => {
+  const [checked, setChecked] = useState(false);
+
+  const onChange = (e: CheckboxChangeEvent) => {
+    setChecked(e.target.checked);
+  };
+
+  return (
+    <Checkbox checked={checked} onChange={onChange}>
+      I agree to the terms and conditions
+    </Checkbox>
+  );
+};
+
+export default BasicCheckbox;
+```
+
+## Common patterns
+
+### Checkbox group
+
+`Checkbox.Group` manages a set of checkboxes as a single controlled field. The `value` prop is an array of the currently selected option values.
+
+```tsx checkbox-group.tsx
+import React, { useState } from 'react';
+import { Checkbox } from 'antd';
+
+const options = [
+  { label: 'Email', value: 'email' },
+  { label: 'SMS', value: 'sms' },
+  { label: 'Push notification', value: 'push' },
+];
+
+const NotificationPreferences: React.FC = () => {
+  const [selected, setSelected] = useState<string[]>(['email']);
+
+  return (
+    <Checkbox.Group
+      options={options}
+      value={selected}
+      onChange={(checkedValues) => setSelected(checkedValues as string[])}
+    />
+  );
+};
+```
+
+### Select-all with indeterminate state
+
+The `indeterminate` prop renders a dash inside the checkbox to indicate a partial selection — a common pattern for "select all" controls.
+
+```tsx select-all.tsx
+import React, { useState } from 'react';
+import { Checkbox, Divider } from 'antd';
+import type { CheckboxChangeEvent } from 'antd/es/checkbox';
+
+const ALL_OPTIONS = ['React', 'Vue', 'Angular', 'Svelte'];
+
+const SelectAll: React.FC = () => {
+  const [checkedList, setCheckedList] = useState<string[]>([]);
+
+  const allChecked = checkedList.length === ALL_OPTIONS.length;
+  const indeterminate = checkedList.length > 0 && !allChecked;
+
+  const onCheckAll = (e: CheckboxChangeEvent) => {
+    setCheckedList(e.target.checked ? ALL_OPTIONS : []);
+  };
+
+  return (
+    <>
+      <Checkbox
+        indeterminate={indeterminate}
+        onChange={onCheckAll}
+        checked={allChecked}
+      >
+        Select all
+      </Checkbox>
+      <Divider />
+      <Checkbox.Group
+        options={ALL_OPTIONS}
+        value={checkedList}
+        onChange={(list) => setCheckedList(list as string[])}
+      />
+    </>
+  );
+};
+```
+
+### Disabled checkboxes
+
+Both individual checkboxes and entire groups can be disabled. Disabled items render with reduced opacity and are not interactive.
+
+```tsx disabled-checkboxes.tsx
+import { Checkbox } from 'antd';
+
+const DisabledExample: React.FC = () => (
+  <>
+    <Checkbox disabled>Unchecked and disabled</Checkbox>
+    <Checkbox disabled defaultChecked>Checked and disabled</Checkbox>
+
+    <Checkbox.Group
+      options={[
+        { label: 'Option A', value: 'a' },
+        { label: 'Option B', value: 'b', disabled: true },
+        { label: 'Option C', value: 'c' },
+      ]}
+      defaultValue={['a']}
+    />
+  </>
+);
+```
+
+### Inside a Form
+
+`Checkbox` uses `checked` instead of `value`, so you must set `valuePropName="checked"` on the wrapping `Form.Item`.
+
+```tsx form-checkbox.tsx
+import React from 'react';
+import { Button, Checkbox, Form, Input } from 'antd';
+
+const RegisterForm: React.FC = () => (
+  <Form name="register" layout="vertical">
+    <Form.Item name="email" label="Email" rules={[{ required: true, type: 'email' }]}>
+      <Input />
+    </Form.Item>
+
+    <Form.Item
+      name="agree"
+      valuePropName="checked"
+      rules={[
+        {
+          validator: (_, value) =>
+            value
+              ? Promise.resolve()
+              : Promise.reject(new Error('You must accept the terms.')),
+        },
+      ]}
+    >
+      <Checkbox>I agree to the terms of service</Checkbox>
+    </Form.Item>
+
+    <Form.Item>
+      <Button type="primary" htmlType="submit">Register</Button>
+    </Form.Item>
+  </Form>
+);
+```
+
+### Checkbox group with grid layout
+
+Use `Checkbox.Group` with a custom renderer to arrange checkboxes in a grid via Ant Design's `Row` and `Col` components.
+
+```tsx grid-checkbox.tsx
+import React, { useState } from 'react';
+import { Checkbox, Col, Row } from 'antd';
+
+const departments = [
+  'Engineering', 'Design', 'Marketing',
+  'Sales', 'Operations', 'Finance',
+];
+
+const GridCheckboxGroup: React.FC = () => {
+  const [selected, setSelected] = useState<string[]>([]);
+
+  return (
+    <Checkbox.Group value={selected} onChange={(v) => setSelected(v as string[])}>
+      <Row gutter={[16, 8]}>
+        {departments.map((dept) => (
+          <Col span={8} key={dept}>
+            <Checkbox value={dept}>{dept}</Checkbox>
+          </Col>
+        ))}
+      </Row>
+    </Checkbox.Group>
+  );
+};
+```
+
+## Checkbox props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `checked` | Controlled checked state | `boolean` | `false` |
+| `defaultChecked` | Uncontrolled initial checked state | `boolean` | `false` |
+| `disabled` | Disable the checkbox | `boolean` | `false` |
+| `indeterminate` | Show partial selection state (dash icon) | `boolean` | `false` |
+| `onChange` | Called when the checked state changes | `(e: CheckboxChangeEvent) => void` | — |
+| `onFocus` | Called when the checkbox receives focus | `() => void` | — |
+| `onBlur` | Called when the checkbox loses focus | `() => void` | — |
+
+## Checkbox.Group props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `options` | Option list. Accepts strings, numbers, or `Option` objects | `string[] \| number[] \| Option[]` | `[]` |
+| `value` | Controlled selected values | `(string \| number \| boolean)[]` | `[]` |
+| `defaultValue` | Uncontrolled initial selected values | `(string \| number)[]` | `[]` |
+| `disabled` | Disable all checkboxes in the group | `boolean` | `false` |
+| `name` | Native `name` attribute for all checkboxes | `string` | — |
+| `onChange` | Called when the selection changes | `(checkedValues: T[]) => void` | — |
+
+### Option object shape
+
+| Field | Description | Type |
+|-------|-------------|------|
+| `label` | Display text | `string` |
+| `value` | The value stored when checked | `string` |
+| `disabled` | Disable this individual option | `boolean` |
+
+<Note>
+  Use `Form.Item` with `valuePropName="checked"` when placing a single `Checkbox` in a form. For `Checkbox.Group`, the default `valuePropName="value"` works correctly because the group's `value` prop accepts an array.
+</Note>
+
+<Tip>
+  The `indeterminate` prop is purely visual — it does not affect the underlying `checked` value. You must compute and manage the `indeterminate` state yourself based on how many options are selected versus the total available.
+</Tip>

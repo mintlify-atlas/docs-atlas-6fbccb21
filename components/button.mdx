@@ -1,0 +1,202 @@
+---
+title: "Button: Ant Design React Component Guide"
+description: "Learn how to use the Ant Design Button component, including all types, sizes, states, icon support, and loading behavior with real TypeScript examples."
+---
+
+The `Button` component triggers an action or event — such as submitting a form, opening a dialog, or navigating to another page. Ant Design provides five button types to communicate different levels of hierarchy and intent, plus modifiers for danger states, loading, and icons.
+
+## Basic usage
+
+Import `Button` from `antd` and choose the appropriate `type` for the context.
+
+```tsx basic-usage.tsx
+import React from 'react';
+import { Button, Flex } from 'antd';
+
+const App: React.FC = () => (
+  <Flex gap="small" wrap>
+    <Button type="primary">Primary Button</Button>
+    <Button>Default Button</Button>
+    <Button type="dashed">Dashed Button</Button>
+    <Button type="text">Text Button</Button>
+    <Button type="link">Link Button</Button>
+  </Flex>
+);
+
+export default App;
+```
+
+## Button types
+
+| Type | Use case |
+|------|----------|
+| `primary` | Main action in a section. Use at most one per section. |
+| `default` | General actions without a clear priority. |
+| `dashed` | Secondary or additive actions (e.g., "Add item"). |
+| `text` | Lowest-priority actions with no border or background. |
+| `link` | External navigation; renders as an `<a>` element. |
+
+<Tip>
+`type` is syntactic sugar for the `color` + `variant` API (v5.21.0+). For example, `type="primary"` is equivalent to `color="primary" variant="solid"`. Use `color` and `variant` directly when you need a preset color like `green` or `volcano`.
+</Tip>
+
+## Variants and colors (v5.21.0+)
+
+For finer control, use `color` and `variant` directly instead of `type`:
+
+```tsx color-variant.tsx
+import React from 'react';
+import { Button, Flex } from 'antd';
+
+const App: React.FC = () => (
+  <Flex gap="small" wrap>
+    <Button color="primary" variant="solid">Solid</Button>
+    <Button color="primary" variant="outlined">Outlined</Button>
+    <Button color="primary" variant="dashed">Dashed</Button>
+    <Button color="primary" variant="filled">Filled</Button>
+    <Button color="primary" variant="text">Text</Button>
+    <Button color="primary" variant="link">Link</Button>
+  </Flex>
+);
+
+export default App;
+```
+
+**`color` values:** `default` | `primary` | `danger` | any `PresetColor` (`blue`, `green`, `red`, `orange`, `volcano`, `cyan`, `purple`, `magenta`, `pink`, `yellow`, `geekblue`, `lime`, `gold`)
+
+**`variant` values:** `outlined` | `dashed` | `solid` | `filled` | `text` | `link`
+
+## Icons and shapes
+
+Pass any `@ant-design/icons` node to the `icon` prop. Use `iconPlacement` to position the icon before or after the label. Use `shape="circle"` for icon-only buttons.
+
+```tsx icon-buttons.tsx
+import React from 'react';
+import { SearchOutlined } from '@ant-design/icons';
+import { Button, Flex, Tooltip } from 'antd';
+
+const App: React.FC = () => (
+  <Flex gap="small" wrap>
+    {/* Icon-only circle button */}
+    <Tooltip title="search">
+      <Button type="primary" shape="circle" icon={<SearchOutlined />} />
+    </Tooltip>
+
+    {/* Icon with label */}
+    <Button type="primary" icon={<SearchOutlined />}>
+      Search
+    </Button>
+
+    {/* Icon at end */}
+    <Button type="primary" icon={<SearchOutlined />} iconPlacement="end">
+      Search
+    </Button>
+
+    {/* Round shape */}
+    <Button type="primary" shape="round" icon={<SearchOutlined />}>
+      Search
+    </Button>
+  </Flex>
+);
+
+export default App;
+```
+
+## Loading state
+
+Set `loading` to `true` to show a spinner and prevent duplicate submissions. Pass `{ delay: number }` to debounce the loading indicator appearance.
+
+```tsx loading-button.tsx
+import React, { useState } from 'react';
+import { Button } from 'antd';
+
+const App: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = () => {
+    setLoading(true);
+    setTimeout(() => setLoading(false), 2000);
+  };
+
+  return (
+    <Button type="primary" loading={loading} onClick={handleClick}>
+      Submit
+    </Button>
+  );
+};
+
+export default App;
+```
+
+## Danger and ghost
+
+```tsx danger-ghost.tsx
+import React from 'react';
+import { Button, Flex } from 'antd';
+
+const App: React.FC = () => (
+  <Flex gap="small" vertical>
+    {/* Danger: signals destructive actions */}
+    <Flex gap="small">
+      <Button danger type="primary">Delete</Button>
+      <Button danger>Delete</Button>
+      <Button danger type="dashed">Delete</Button>
+    </Flex>
+
+    {/* Ghost: transparent background, inverted border/text */}
+    <Flex gap="small" style={{ background: '#1677ff', padding: 16 }}>
+      <Button ghost>Ghost</Button>
+      <Button ghost type="primary">Ghost Primary</Button>
+    </Flex>
+  </Flex>
+);
+
+export default App;
+```
+
+<Warning>
+`ghost` has no effect on `text` or `link` variant buttons. Using it with those variants will log a warning in development.
+</Warning>
+
+## API
+
+| Property | Description | Type | Default | Version |
+|----------|-------------|------|---------|---------|
+| `type` | Syntactic sugar for `color` + `variant` | `primary` \| `default` \| `dashed` \| `text` \| `link` | `default` | - |
+| `color` | Button color | `default` \| `primary` \| `danger` \| PresetColor | - | 5.21.0 |
+| `variant` | Button variant style | `outlined` \| `dashed` \| `solid` \| `filled` \| `text` \| `link` | - | 5.21.0 |
+| `size` | Button size | `large` \| `medium` \| `small` | `medium` | - |
+| `shape` | Button shape | `default` \| `circle` \| `round` | `default` | - |
+| `icon` | Icon node inside the button | ReactNode | - | - |
+| `iconPlacement` | Position of the icon | `start` \| `end` | `start` | - |
+| `loading` | Show loading spinner | `boolean` \| `{ delay?: number; icon?: ReactNode }` | `false` | `icon`: 5.23.0 |
+| `disabled` | Disable the button | boolean | `false` | - |
+| `danger` | Apply destructive/danger styling | boolean | `false` | - |
+| `ghost` | Transparent background with inverted text and border | boolean | `false` | - |
+| `block` | Stretch button to fill parent width | boolean | `false` | - |
+| `href` | Navigate to URL (renders as `<a>`) | string | - | - |
+| `target` | Same as `<a>` `target`; requires `href` | string | - | - |
+| `htmlType` | Native button `type` attribute | `submit` \| `reset` \| `button` | `button` | - |
+| `onClick` | Click event handler | `(event) => void` | - | - |
+| `autoInsertSpace` | Insert a space between two Chinese characters | boolean | `true` | 5.17.0 |
+
+<Note>
+`Button` accepts all native `<button>` and `<a>` HTML props in addition to the ones listed above.
+</Note>
+
+## Sizes
+
+```tsx button-sizes.tsx
+import React from 'react';
+import { Button, Flex } from 'antd';
+
+const App: React.FC = () => (
+  <Flex gap="small" align="center">
+    <Button type="primary" size="large">Large</Button>
+    <Button type="primary">Medium (default)</Button>
+    <Button type="primary" size="small">Small</Button>
+  </Flex>
+);
+
+export default App;
+```

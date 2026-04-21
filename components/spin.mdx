@@ -1,0 +1,183 @@
+---
+title: "Spin: Loading Indicator Component for Ant Design"
+description: "Display an animated loading indicator as a standalone spinner or as an overlay that wraps and blocks content until an async operation completes."
+---
+
+Spin shows a rotating loading indicator to communicate that data is being fetched or a process is running. You can use it as a standalone spinner, wrap it around content to overlay a section of the page, or display it full-screen. Pairing Spin with a `spinning` prop that mirrors your async loading state keeps the UI responsive and informative.
+
+## Basic usage
+
+### Standalone spinner
+
+Render `<Spin />` anywhere to show the default indicator with no wrapping behavior.
+
+```tsx spin-basic.tsx
+import { Spin } from 'antd';
+
+export default function BasicSpin() {
+  return <Spin />;
+}
+```
+
+### Wrapping content
+
+Pass children to Spin to overlay a loading state over a section of the page. Toggle the `spinning` prop to show or hide the overlay.
+
+```tsx spin-wrapped.tsx
+import React, { useState } from 'react';
+import { Button, Spin } from 'antd';
+
+export default function WrappedSpin() {
+  const [loading, setLoading] = useState(false);
+
+  const fetchData = () => {
+    setLoading(true);
+    setTimeout(() => setLoading(false), 2000);
+  };
+
+  return (
+    <>
+      <Button onClick={fetchData} style={{ marginBottom: 16 }}>
+        Load data
+      </Button>
+      <Spin spinning={loading}>
+        <div style={{ padding: 24, background: '#fafafa', borderRadius: 8 }}>
+          <p>Content that gets overlaid while loading.</p>
+          <p>It remains in the DOM — only obscured by the spinner.</p>
+        </div>
+      </Spin>
+    </>
+  );
+}
+```
+
+## Size
+
+Three named sizes control the spinner dimensions. Use `small` for inline contexts, `medium` (default) for cards and panels, and `large` for full-page loading states.
+
+```tsx spin-sizes.tsx
+import { Space, Spin } from 'antd';
+
+export default function SpinSizes() {
+  return (
+    <Space size="large" align="center">
+      <Spin size="small" />
+      <Spin size="medium" />
+      <Spin size="large" />
+    </Space>
+  );
+}
+```
+
+## Description text
+
+Use the `description` prop to show a label beneath the spinner. This is especially useful when wrapping large content areas.
+
+```tsx spin-description.tsx
+import React, { useState } from 'react';
+import { Button, Spin } from 'antd';
+
+export default function SpinDescription() {
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <>
+      <Button onClick={() => setLoading((prev) => !prev)}>Toggle</Button>
+      <Spin spinning={loading} description="Saving changes…" size="large">
+        <div style={{ marginTop: 16, padding: 24, background: '#fafafa' }}>
+          <p>Form content.</p>
+        </div>
+      </Spin>
+    </>
+  );
+}
+```
+
+## Delay
+
+Use `delay` (milliseconds) to prevent the spinner from flashing for very fast operations. The spinner appears only if `spinning` is still `true` after the delay elapses.
+
+```tsx spin-delay.tsx
+import React, { useState } from 'react';
+import { Button, Spin } from 'antd';
+
+export default function SpinDelay() {
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <>
+      <Button onClick={() => { setLoading(true); setTimeout(() => setLoading(false), 3000); }}>
+        Start (3 s)
+      </Button>
+      <Spin spinning={loading} delay={500}>
+        <div style={{ marginTop: 16, padding: 24, background: '#fafafa' }}>
+          <p>Spinner appears only if loading takes longer than 500 ms.</p>
+        </div>
+      </Spin>
+    </>
+  );
+}
+```
+
+## Fullscreen mode
+
+Set `fullscreen` to display the spinner with a backdrop that covers the entire viewport — useful for page-level loading during route transitions or initial data fetches.
+
+```tsx spin-fullscreen.tsx
+import React, { useState } from 'react';
+import { Button, Spin } from 'antd';
+
+export default function FullscreenSpin() {
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <>
+      <Button onClick={() => { setLoading(true); setTimeout(() => setLoading(false), 2000); }}>
+        Load page
+      </Button>
+      <Spin spinning={loading} fullscreen />
+    </>
+  );
+}
+```
+
+## Custom indicator
+
+Replace the default spinner with any React node using the `indicator` prop, or set a global default with `Spin.setDefaultIndicator`.
+
+```tsx spin-custom-indicator.tsx
+import { LoadingOutlined } from '@ant-design/icons';
+import { Spin } from 'antd';
+
+export default function CustomSpin() {
+  return <Spin indicator={<LoadingOutlined spin style={{ fontSize: 32 }} />} />;
+}
+```
+
+## Props
+
+| Prop | Description | Type | Default |
+|---|---|---|---|
+| `spinning` | Whether the spinner is visible | `boolean` | `true` |
+| `size` | Spinner size | `'small' \| 'medium' \| 'large'` | `'medium'` |
+| `description` | Label displayed beneath the spinner | `ReactNode` | — |
+| `delay` | Milliseconds to wait before showing the spinner (debounce) | `number` | `0` |
+| `fullscreen` | Display with a full-viewport backdrop | `boolean` | `false` |
+| `indicator` | Custom spinner element | `ReactNode` | — |
+| `percent` | Progress percentage; `'auto'` for indeterminate progress | `number \| 'auto'` | — |
+| `classNames` | Per-slot class name overrides | `Record<SemanticDOM, string>` | — |
+| `styles` | Per-slot inline style overrides | `Record<SemanticDOM, CSSProperties>` | — |
+
+### Static method
+
+| Method | Description |
+|---|---|
+| `Spin.setDefaultIndicator(indicator)` | Set the global default spinner element for all `<Spin>` instances |
+
+<Note>
+  When `spinning={false}`, the children are rendered normally with no overlay — the Spin component simply becomes a transparent wrapper. You can safely leave `<Spin>` in the tree and toggle `spinning` to avoid mounting/unmounting the content.
+</Note>
+
+<Tip>
+  Use the `delay` prop for data that typically loads in under 200 ms. Showing a spinner for very short fetches creates unnecessary visual noise.
+</Tip>

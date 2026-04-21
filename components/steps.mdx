@@ -1,0 +1,155 @@
+---
+title: Steps — Ant Design Multi-Step Workflow Indicator
+description: Guide users through sequential tasks with Ant Design Steps. Covers default, dot, navigation, inline, and panel types, step status, icons, and layouts.
+---
+
+`Steps` renders a progress indicator that shows users where they are in a multi-stage workflow. Use it for checkout flows, onboarding sequences, form wizards, or any process that has a defined sequence of subtasks. The active step is tracked via `current` and each item can independently carry a `status` of `wait`, `process`, `finish`, or `error`.
+
+## Basic usage
+
+```tsx
+import React, { useState } from 'react';
+import { Button, Steps } from 'antd';
+
+const items = [
+  { title: 'Account', content: 'Enter your account details.' },
+  { title: 'Profile', content: 'Fill out your profile information.', subTitle: '2 min' },
+  { title: 'Review', content: 'Review and submit.' },
+];
+
+export default function App() {
+  const [current, setCurrent] = useState(0);
+
+  return (
+    <>
+      <Steps current={current} items={items} />
+      <div style={{ marginTop: 24 }}>{items[current].content}</div>
+      <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+        {current > 0 && <Button onClick={() => setCurrent(current - 1)}>Previous</Button>}
+        {current < items.length - 1 && (
+          <Button type="primary" onClick={() => setCurrent(current + 1)}>Next</Button>
+        )}
+        {current === items.length - 1 && (
+          <Button type="primary" onClick={() => alert('Done!')}>Submit</Button>
+        )}
+      </div>
+    </>
+  );
+}
+```
+
+## Types
+
+<Tabs>
+  <Tab title="Default">
+    ```tsx
+    <Steps current={1} items={items} />
+    ```
+    Numbered circle icons. The current step shows a progress ring when `percent` is provided.
+  </Tab>
+  <Tab title="Dot">
+    ```tsx
+    <Steps type="dot" current={1} items={items} />
+    ```
+    Replaces numbered icons with small dots. Titles are placed below the dots.
+  </Tab>
+  <Tab title="Navigation">
+    ```tsx
+    <Steps type="navigation" current={1} items={items} onChange={setCurrent} />
+    ```
+    Horizontal banner-style steps designed for page-level navigation. Best used with a full-width container.
+  </Tab>
+  <Tab title="Inline">
+    ```tsx
+    <Steps type="inline" current={1} items={items} />
+    ```
+    Compact inline presentation. Hover over a dot to see the step content in a tooltip.
+  </Tab>
+  <Tab title="Panel">
+    ```tsx
+    <Steps type="panel" current={1} items={items} />
+    ```
+    Displays the steps inside card-like panels with arrow connectors between them.
+  </Tab>
+</Tabs>
+
+## Orientation
+
+```tsx
+{/* Vertical layout */}
+<Steps orientation="vertical" current={1} items={items} />
+```
+
+Vertical steps stack items top-to-bottom and are a good fit for narrow sidebars or timelines. By default, `responsive` is `true`, so the steps automatically switch to vertical when the screen width drops below `532px`.
+
+## Error state and clickable steps
+
+```tsx
+import React, { useState } from 'react';
+import { Steps } from 'antd';
+
+const items = [
+  { title: 'Finished', status: 'finish' as const },
+  { title: 'In Progress', status: 'process' as const },
+  { title: 'Error', status: 'error' as const },
+  { title: 'Waiting' },
+];
+
+export default function App() {
+  const [current, setCurrent] = useState(1);
+
+  return (
+    <Steps
+      current={current}
+      items={items}
+      onChange={setCurrent}   // makes all steps clickable
+    />
+  );
+}
+```
+
+<Note>
+  Steps are not clickable by default. Provide an `onChange` handler to enable navigation by clicking on any step.
+</Note>
+
+## Variants
+
+```tsx
+<Steps current={1} items={items} variant="filled" />   {/* default */}
+<Steps current={1} items={items} variant="outlined" />
+```
+
+`outlined` renders the step icons with an outline style rather than a filled background. Both variants support all step types.
+
+## Steps props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `items` | Array of step item configs | `StepItem[]` | `[]` |
+| `current` | Index of the active step (0-based) | `number` | `0` |
+| `status` | Status of the current step | `'wait' \| 'process' \| 'finish' \| 'error'` | `'process'` |
+| `type` | Visual type | `'default' \| 'dot' \| 'navigation' \| 'inline' \| 'panel'` | `'default'` |
+| `orientation` | Layout direction | `'horizontal' \| 'vertical'` | `'horizontal'` |
+| `variant` | Icon style | `'filled' \| 'outlined'` | `'filled'` |
+| `size` | Component size | `'medium' \| 'small'` | `'medium'` |
+| `percent` | Progress percentage on the current step icon | `number` | — |
+| `initial` | Offset for the first step number | `number` | `0` |
+| `responsive` | Auto-switch to vertical on small screens | `boolean` | `true` |
+| `titlePlacement` | Title/content placement relative to icons | `'horizontal' \| 'vertical'` | `'horizontal'` |
+| `iconRender` | Custom icon renderer | `(oriNode, info) => ReactNode` | — |
+| `onChange` | Fires when a step is clicked | `(current: number) => void` | — |
+
+## StepItem props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `title` | Step title | `ReactNode` | — |
+| `content` | Step description | `ReactNode` | — |
+| `subTitle` | Subtitle shown next to the title | `ReactNode` | — |
+| `icon` | Custom icon for this step | `ReactNode` | — |
+| `status` | Override status for this step | `'wait' \| 'process' \| 'finish' \| 'error'` | `'wait'` |
+| `disabled` | Prevent clicking this step | `boolean` | `false` |
+
+<Warning>
+  `items.description` is deprecated. Use `items.content` instead. The `direction` prop is also deprecated in favour of `orientation`, and `labelPlacement` is replaced by `titlePlacement`.
+</Warning>

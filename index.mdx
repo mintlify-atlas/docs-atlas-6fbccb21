@@ -1,97 +1,99 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Ant Design: Enterprise React UI Library"
+description: "Ant Design provides 80+ React components with CSS-in-JS theming, dark mode, RTL support, 74+ locale translations, and full TypeScript support."
 ---
 
-## Setting up
+Ant Design (`antd`) is an enterprise-class UI design language and React component library. It ships over 80 high-quality components — from basic inputs and layout helpers to complex data tables and date pickers — all styled with a cohesive design token system that supports light/dark themes, compact density, and full RTL layouts out of the box.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Install antd and render your first component in under five minutes.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Customize Theme" icon="palette" href="/advanced/customize-theme">
+    Adjust design tokens and algorithms to match your brand.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Component Reference" icon="cubes" href="/components/button">
+    Browse all 80+ components with props, types, and usage examples.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Migrate to v6" icon="arrow-up-right-dots" href="/migration-v6">
+    Upgrade from Ant Design v5 to v6 with the migration guide.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Get started in three steps
 
-Everything you need to create world-class documentation.
+<Steps>
+  <Step title="Install antd">
+    Add the package to your React project using your preferred package manager.
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+    <CodeGroup>
+    ```bash npm
+    npm install antd
+    ```
+    ```bash yarn
+    yarn add antd
+    ```
+    ```bash pnpm
+    pnpm add antd
+    ```
+    </CodeGroup>
+  </Step>
+  <Step title="Import and use a component">
+    Import any component directly from `antd`. Styles are applied automatically via CSS-in-JS — no separate CSS import needed.
 
-## Need inspiration?
+    ```tsx
+    import { Button, DatePicker } from 'antd';
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+    export default function App() {
+      return (
+        <div>
+          <Button type="primary">Hello Ant Design</Button>
+          <DatePicker />
+        </div>
+      );
+    }
+    ```
+  </Step>
+  <Step title="Customize the theme (optional)">
+    Wrap your app in `ConfigProvider` to override design tokens globally or per-component.
+
+    ```tsx
+    import { ConfigProvider, Button } from 'antd';
+
+    export default function App() {
+      return (
+        <ConfigProvider theme={{ token: { colorPrimary: '#00b96b' } }}>
+          <Button type="primary">Custom theme</Button>
+        </ConfigProvider>
+      );
+    }
+    ```
+  </Step>
+</Steps>
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="Design Token system" icon="droplet" href="/advanced/customize-theme">
+    Seed tokens derive a full palette automatically. Override globally or per component with `ConfigProvider`.
+  </Card>
+  <Card title="Dark and compact modes" icon="moon" href="/advanced/customize-theme">
+    Switch between `defaultAlgorithm`, `darkAlgorithm`, and `compactAlgorithm` at runtime.
+  </Card>
+  <Card title="Internationalization" icon="globe" href="/advanced/internationalization">
+    Built-in locale support for 150+ languages. Pass any locale to `ConfigProvider`.
+  </Card>
+  <Card title="Server-side rendering" icon="server" href="/advanced/server-side-rendering">
+    Full SSR support with inline style extraction or static CSS export via `@ant-design/cssinjs`.
+  </Card>
+  <Card title="TypeScript-first" icon="code" href="/components/button">
+    Every component ships with complete TypeScript definitions. Use `GetProps` to extract prop types.
+  </Card>
+  <Card title="Framework integrations" icon="layer-group" href="/frameworks/use-with-next">
+    Dedicated guides for Next.js, Vite, Umi, Rsbuild, and more.
+  </Card>
+</CardGroup>
+
+<Note>
+  Ant Design v6 requires **React 18 or higher**. If you are on React 17, use antd v5.
+</Note>

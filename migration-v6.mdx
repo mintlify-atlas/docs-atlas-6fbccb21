@@ -1,0 +1,393 @@
+---
+title: "Migrating Ant Design from v5 to v6: Upgrade Guide"
+description: "Upgrade antd from v5 to v6: React 18 requirement, removed deprecated APIs, DOM adjustments, and a step-by-step checklist for a smooth migration."
+---
+
+Ant Design v6 is primarily a technical upgrade: most component APIs remain compatible, but the React version requirement changed and a large number of previously deprecated APIs have reached their removal deadline. This guide covers every breaking change in v6, provides before-and-after code examples, and gives you a checklist to verify your app is working correctly after the upgrade.
+
+<Warning>
+  **React 18 or above is required.** antd v6 no longer supports React 16 or React 17. Upgrade React before upgrading antd.
+</Warning>
+
+## Before you upgrade
+
+Work through these steps in order before touching your `antd` version:
+
+1. Upgrade to the **latest v5 release** and fix all deprecation warnings shown in the browser console. The v6 removal list maps exactly to what was deprecated in v5.
+2. Ensure your project runs on **React 18 or above**. v6 will not work with React 17 or earlier.
+3. Verify your target browsers are modern. v6 uses CSS variables by default and **does not support Internet Explorer**.
+
+## Installing v6
+
+<CodeGroup>
+
+```bash npm
+npm install --save antd@6
+```
+
+```bash yarn
+yarn add antd@6
+```
+
+```bash pnpm
+pnpm add antd@6
+```
+
+</CodeGroup>
+
+## What changed in v6
+
+### React version requirement
+
+antd v6 requires React 18 or above. React 16 and React 17 are no longer supported.
+
+As a related change, the `@ant-design/v5-patch-for-react-19` compatibility shim is no longer needed — React 19 is supported natively. Remove it if your project included it:
+
+```diff
+- import '@ant-design/v5-patch-for-react-19';
+```
+
+### Icons package upgrade
+
+antd v6 requires `@ant-design/icons` version 6.0.0 or above.
+
+<Warning>
+  `@ant-design/icons@6` is **not** compatible with `antd@5`. You must upgrade both packages together. Do not upgrade one without the other.
+</Warning>
+
+If your project declares `@ant-design/icons` as a direct dependency, upgrade it at the same time:
+
+<CodeGroup>
+
+```bash npm
+npm install --save @ant-design/icons@6
+```
+
+```bash yarn
+yarn add @ant-design/icons@6
+```
+
+```bash pnpm
+pnpm add @ant-design/icons@6
+```
+
+</CodeGroup>
+
+### Browser support and CSS variables
+
+CSS variables are enabled by default in v6. Internet Explorer and some older domestic browsers are not supported. Confirm your target user browsers support CSS variables before shipping.
+
+### DOM structure adjustments
+
+v6 upgrades and optimises the internal DOM structure of many components to improve maintainability and consistency. For projects that rely only on standard antd styling this has no visible effect. If your project applies custom CSS that targets internal component DOM nodes (specific selectors or selector hierarchies), audit those styles after upgrading and adjust as necessary.
+
+### Overlay blur (Modal, Drawer)
+
+v6 introduces a `mask` option for overlay components and enables a backdrop blur effect by default. To disable blur globally:
+
+```tsx
+import { ConfigProvider, Drawer, Modal } from 'antd';
+
+export default () => (
+  <ConfigProvider
+    modal={{
+      mask: {
+        blur: false,
+      },
+    }}
+    drawer={{
+      mask: {
+        blur: false,
+      },
+    }}
+  >
+    <Modal />
+    <Drawer />
+  </ConfigProvider>
+);
+```
+
+### Tag trailing margin removed
+
+v6 removes the default trailing `margin-inline-end` from the `Tag` component. If your layout relied on that implicit spacing, restore it via `ConfigProvider`:
+
+```tsx
+import { ConfigProvider, Tag } from 'antd';
+
+export default () => (
+  <ConfigProvider
+    tag={{
+      styles: {
+        root: {
+          marginInlineEnd: 8,
+        },
+      },
+    }}
+  >
+    <Tag>Tag A</Tag>
+    <Tag>Tag B</Tag>
+    <Tag>Tag C</Tag>
+  </ConfigProvider>
+);
+```
+
+Prefer local container overrides over global configuration if you only need the spacing in specific areas.
+
+### Form.List data scope change
+
+In v5, `onFinish` included all data within a `Form.List` structure, even for items without a registered `Form.Item`. In v6 only registered fields are included. You no longer need `getFieldsValue({ strict: true })` to filter unregistered fields:
+
+```diff
+  const onFinish = (values) => {
+-   const realValues = getFieldsValue({ strict: true });
++   const realValues = values;
+
+    // ...
+  }
+
+  <Form onFinish={onFinish} />
+```
+
+## Deprecated APIs (removal in v7)
+
+The APIs below still work in v6 but emit console warnings. They will be removed in v7. Migrate to the replacement API as early as possible.
+
+<AccordionGroup>
+  <Accordion title="Alert">
+    - `closeText` → `closable.closeIcon`
+    - `message` → `title`
+  </Accordion>
+  <Accordion title="Anchor">
+    - `Anchor children` → `items`
+  </Accordion>
+  <Accordion title="AutoComplete">
+    - `dropdownMatchSelectWidth` → `popupMatchSelectWidth`
+    - `dropdownStyle` → `styles.popup.root`
+    - `dropdownClassName` → `classNames.popup.root`
+    - `popupClassName` → `classNames.popup.root`
+    - `dropdownRender` → `popupRender`
+    - `onDropdownVisibleChange` → `onOpenChange`
+    - `dataSource` → `options`
+  </Accordion>
+  <Accordion title="Avatar.Group">
+    - `maxCount` → `max={{ count: number }}`
+    - `maxStyle` → `max={{ style: CSSProperties }}`
+    - `maxPopoverPlacement` → `max={{ popover: PopoverProps }}`
+    - `maxPopoverTrigger` → `max={{ popover: PopoverProps }}`
+  </Accordion>
+  <Accordion title="BackTop">
+    - `BackTop` → `FloatButton.BackTop`
+  </Accordion>
+  <Accordion title="Breadcrumb">
+    - `routes` → `items`
+    - `Breadcrumb.Item` and `Breadcrumb.Separator` → `items`
+  </Accordion>
+  <Accordion title="Button / Button.Group">
+    - `Button.Group` → `Space.Compact`
+    - `iconPosition` → `iconPlacement`
+  </Accordion>
+  <Accordion title="Calendar">
+    - `dateFullCellRender` → `fullCellRender`
+    - `dateCellRender` → `cellRender`
+    - `monthFullCellRender` → `fullCellRender`
+    - `monthCellRender` → `cellRender`
+  </Accordion>
+  <Accordion title="Card">
+    - `headStyle` → `styles.header`
+    - `bodyStyle` → `styles.body`
+    - `bordered` → `variant`
+  </Accordion>
+  <Accordion title="Carousel">
+    - `dotPosition` → `dotPlacement`
+  </Accordion>
+  <Accordion title="Cascader">
+    - `dropdownClassName` → `classNames.popup.root`
+    - `dropdownStyle` → `styles.popup.root`
+    - `dropdownRender` → `popupRender`
+    - `dropdownMenuColumnStyle` → `styles.popup.listItem`
+    - `onDropdownVisibleChange` / `onPopupVisibleChange` → `onOpenChange`
+    - `bordered` → `variant`
+  </Accordion>
+  <Accordion title="Collapse / Collapse.Panel">
+    - `destroyInactivePanel` → `destroyOnHidden`
+    - `expandIconPosition` → `expandIconPlacement`
+    - `Collapse.Panel disabled` → `collapsible="disabled"`
+  </Accordion>
+  <Accordion title="DatePicker / DatePicker.RangePicker">
+    - `dropdownClassName` / `popupClassName` → `classNames.popup.root`
+    - `popupStyle` → `styles.popup.root`
+    - `bordered` → `variant`
+    - `onSelect` → `onCalendarChange`
+  </Accordion>
+  <Accordion title="Descriptions">
+    - `labelStyle` → `styles.label`
+    - `contentStyle` → `styles.content`
+  </Accordion>
+  <Accordion title="Divider">
+    - `type` → `orientation`
+    - `orientationMargin` → `styles.content.margin`
+  </Accordion>
+  <Accordion title="Drawer">
+    - `headerStyle` → `styles.header`
+    - `bodyStyle` → `styles.body`
+    - `footerStyle` → `styles.footer`
+    - `contentWrapperStyle` → `styles.wrapper`
+    - `maskStyle` → `styles.mask`
+    - `drawerStyle` → `styles.section`
+    - `destroyInactivePanel` → `destroyOnHidden`
+    - `width` / `height` → `size`
+  </Accordion>
+  <Accordion title="Dropdown / Dropdown.Button">
+    - `Dropdown.Button` → `Space.Compact + Dropdown + Button`
+    - `dropdownRender` → `popupRender`
+    - `destroyPopupOnHide` → `destroyOnHidden`
+    - `overlayClassName` → `classNames.root`
+    - `overlayStyle` → `styles.root`
+    - `placement: xxxCenter` → `placement: xxx`
+  </Accordion>
+  <Accordion title="FloatButton">
+    - `description` → `content`
+  </Accordion>
+  <Accordion title="Image">
+    - `wrapperStyle` → `styles.root`
+    - `visible` → `open`
+    - `onVisibleChange` → `onOpenChange`
+    - `maskClassName` → `classNames.cover`
+    - `rootClassName` → `classNames.root`
+    - `toolbarRender` → `actionsRender`
+  </Accordion>
+  <Accordion title="Input / Input.Group / InputNumber">
+    - `Input.Group` → `Space.Compact`
+    - `InputNumber: bordered` → `variant`
+    - `InputNumber: addonAfter / addonBefore` → `Space.Compact`
+  </Accordion>
+  <Accordion title="Menu">
+    - `children` → `items`
+  </Accordion>
+  <Accordion title="Modal">
+    - `bodyStyle` → `styles.body`
+    - `maskStyle` → `styles.mask`
+    - `destroyOnClose` → `destroyOnHidden`
+  </Accordion>
+  <Accordion title="Notification">
+    - `btn` → `actions`
+    - `message` → `title`
+  </Accordion>
+  <Accordion title="Progress">
+    - `strokeWidth` → `size`
+    - `width` → `size`
+    - `trailColor` → `railColor`
+    - `gapPosition` → `gapPlacement`
+  </Accordion>
+  <Accordion title="Select">
+    - `dropdownMatchSelectWidth` → `popupMatchSelectWidth`
+    - `dropdownStyle` → `styles.popup.root`
+    - `dropdownClassName` / `popupClassName` → `classNames.popup.root`
+    - `dropdownRender` → `popupRender`
+    - `onDropdownVisibleChange` → `onOpenChange`
+    - `bordered` → `variant`
+  </Accordion>
+  <Accordion title="Slider">
+    - `tooltipPrefixCls` → `tooltip.prefixCls`
+    - `getTooltipPopupContainer` → `tooltip.getPopupContainer`
+    - `tipFormatter` → `tooltip.formatter`
+    - `tooltipPlacement` → `tooltip.placement`
+    - `tooltipVisible` → `tooltip.open`
+  </Accordion>
+  <Accordion title="Space / Space.Compact / Splitter">
+    - `Space direction` → `orientation`
+    - `Space split` → `separator`
+    - `Space.Compact direction` → `orientation`
+    - `Splitter layout` → `orientation`
+  </Accordion>
+  <Accordion title="Statistic / Countdown">
+    - `Statistic.Countdown` → `Statistic.Timer type="countdown"`
+    - `valueStyle` → `styles.content`
+  </Accordion>
+  <Accordion title="Steps">
+    - `labelPlacement` → `titlePlacement`
+    - `progressDot` → `type="dot"`
+    - `direction` → `orientation`
+    - `items.description` → `items.content`
+  </Accordion>
+  <Accordion title="Table">
+    - `pagination.position` → `pagination.placement`
+    - `onSelectInvert` → `onChange`
+    - `filterDropdownOpen` → `filterDropdownProps.open`
+    - `onFilterDropdownOpenChange` → `filterDropdownProps.onOpenChange`
+    - `filterCheckall` → `locale.filterCheckAll`
+  </Accordion>
+  <Accordion title="Tabs">
+    - `popupClassName` → `classNames.popup`
+    - `tabPosition` → `tabPlacement`
+    - `destroyInactiveTabPane` → `destroyOnHidden`
+    - `Tabs.TabPane` → `items`
+  </Accordion>
+  <Accordion title="Tag">
+    - `bordered={false}` → `variant="filled"`
+    - `color="xxx-inverse"` → `variant="solid"`
+  </Accordion>
+  <Accordion title="TimePicker">
+    - `addon` → `renderExtraFooter`
+  </Accordion>
+  <Accordion title="Timeline">
+    - `Timeline.Item` / `pending` / `pendingDot` → `items`
+    - `mode=left|right` → `mode=start|end`
+  </Accordion>
+  <Accordion title="Tooltip">
+    - `overlayStyle` → `styles.root`
+    - `overlayInnerStyle` → `styles.container`
+    - `overlayClassName` → `classNames.root`
+    - `destroyTooltipOnHide` → `destroyOnHidden`
+  </Accordion>
+  <Accordion title="Transfer">
+    - `listStyle` → `styles.section`
+    - `operationStyle` → `styles.actions`
+    - `operations` → `actions`
+  </Accordion>
+  <Accordion title="TreeSelect">
+    - `dropdownMatchSelectWidth` → `popupMatchSelectWidth`
+    - `dropdownStyle` → `styles.popup.root`
+    - `dropdownClassName` / `popupClassName` → `classNames.popup.root`
+    - `dropdownRender` → `popupRender`
+    - `onDropdownVisibleChange` → `onOpenChange`
+    - `bordered` → `variant`
+  </Accordion>
+</AccordionGroup>
+
+## Step-by-step upgrade checklist
+
+<Steps>
+  <Step title="Upgrade to the latest v5 first">
+    Run your application on the latest v5 release and fix every deprecation warning in the console. This makes the v6 diff much smaller.
+  </Step>
+  <Step title="Upgrade React to 18+">
+    Install React 18 or 19 and update `react-dom` to match. Remove `@ant-design/v5-patch-for-react-19` if present.
+  </Step>
+  <Step title="Install antd@6 and @ant-design/icons@6">
+    Upgrade both packages together. Running `antd@6` with `@ant-design/icons@5` will cause build errors.
+  </Step>
+  <Step title="Run your build">
+    Confirm the build completes without errors. Check that CSS variables and CSS-in-JS styles load correctly.
+  </Step>
+  <Step title="Audit custom styles">
+    If you have CSS targeting internal component DOM nodes, verify those selectors still match under v6's updated DOM structure.
+  </Step>
+  <Step title="Check overlay blur">
+    Decide whether Modal, Drawer, and similar overlays should retain the new default blur effect or have it disabled. Set globally via `ConfigProvider` if needed.
+  </Step>
+  <Step title="Resolve console warnings">
+    Run the app and work through any remaining deprecation warnings. All listed APIs are functional in v6 but will be removed in v7.
+  </Step>
+  <Step title="Verify browser compatibility">
+    Confirm your target browsers support CSS variables. IE is not supported.
+  </Step>
+</Steps>
+
+## Atomic (partial) migration
+
+If you need to limit the migration's scope — for example, to upgrade only part of a large monorepo — you can install v6 under a package alias alongside v5. This approach is not the recommended upgrade path and adds maintenance overhead, but it is documented in [this GitHub discussion](https://github.com/ant-design/ant-design/discussions/55957).
+
+## Need help?
+
+If you run into problems during the upgrade, open an issue at [https://new-issue.ant.design/](https://new-issue.ant.design/). Include your antd version, React version, and a minimal reproduction.

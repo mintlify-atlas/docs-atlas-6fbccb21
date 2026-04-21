@@ -1,0 +1,141 @@
+---
+title: "Divider: Ant Design Section and Inline Separator"
+description: "Separate content sections or inline elements with Ant Design Divider — horizontal and vertical orientations, text labels, and dashed/dotted variants."
+---
+
+`Divider` renders a thin line that separates two sections of content. Use a horizontal divider between article sections or form groups; use a vertical divider to separate inline items like links or action buttons.
+
+## Basic usage
+
+A horizontal divider with no label simply renders a full-width rule:
+
+```tsx basic-divider.tsx
+import React from 'react';
+import { Divider } from 'antd';
+
+const App: React.FC = () => (
+  <>
+    <p>Section one content goes here.</p>
+    <Divider />
+    <p>Section two content goes here.</p>
+    <Divider dashed />
+    <p>Section three content goes here.</p>
+  </>
+);
+
+export default App;
+```
+
+## Divider with title
+
+Pass text or a React node as children to render a label inside the divider line:
+
+```tsx divider-with-title.tsx
+import React from 'react';
+import { Divider } from 'antd';
+
+const App: React.FC = () => (
+  <>
+    <p>Content above</p>
+    <Divider>Section Title</Divider>
+    <p>Content below</p>
+
+    {/* Title aligned left */}
+    <Divider titlePlacement="start">Left-aligned</Divider>
+    <p>Content below</p>
+
+    {/* Title aligned right */}
+    <Divider titlePlacement="end">Right-aligned</Divider>
+    <p>Content below</p>
+  </>
+);
+
+export default App;
+```
+
+<Note>
+Pass `plain` to render the title in regular body font instead of the default heading style. `plain` defaults to `true` since v4.2.0.
+</Note>
+
+## Variants
+
+Use `variant` to choose from solid (default), dashed, or dotted lines:
+
+```tsx divider-variants.tsx
+import React from 'react';
+import { Divider } from 'antd';
+
+const App: React.FC = () => (
+  <>
+    <Divider variant="solid">Solid (default)</Divider>
+    <Divider variant="dashed">Dashed</Divider>
+    <Divider variant="dotted">Dotted</Divider>
+  </>
+);
+
+export default App;
+```
+
+## Vertical divider
+
+Set `orientation="vertical"` (or `vertical`) to use the divider inline between text or links:
+
+```tsx vertical-divider.tsx
+import React from 'react';
+import { Divider } from 'antd';
+
+const App: React.FC = () => (
+  <div>
+    Text
+    <Divider orientation="vertical" />
+    <a href="#">Link</a>
+    <Divider orientation="vertical" />
+    <a href="#">Another link</a>
+  </div>
+);
+
+export default App;
+```
+
+## Size
+
+Use `size` to control the vertical spacing around a horizontal divider (v5.25.0+):
+
+```tsx divider-size.tsx
+import React from 'react';
+import { Divider } from 'antd';
+
+const App: React.FC = () => (
+  <>
+    <p>Content above</p>
+    <Divider size="small" />
+    <p>Content below (small spacing)</p>
+    <Divider size="medium" />
+    <p>Content below (medium spacing)</p>
+    <Divider size="large" />
+    <p>Content below (large spacing)</p>
+  </>
+);
+
+export default App;
+```
+
+## API
+
+| Property | Description | Type | Default | Version |
+|----------|-------------|------|---------|---------|
+| `children` | Label displayed in the center of the divider line | ReactNode | - | - |
+| `orientation` | Direction of the divider | `horizontal` \| `vertical` | `horizontal` | - |
+| `vertical` | Shorthand for vertical orientation (takes priority over `orientation`) | boolean | `false` | - |
+| `titlePlacement` | Position of the label inside the divider | `start` \| `end` \| `center` | `center` | - |
+| `variant` | Style of the divider line (v5.20.0+) | `solid` \| `dashed` \| `dotted` | `solid` | 5.20.0 |
+| `dashed` | Render as dashed line (legacy; prefer `variant="dashed"`) | boolean | `false` | - |
+| `plain` | Render title in plain text style rather than heading style | boolean | `true` | 4.2.0 |
+| `size` | Vertical spacing size; horizontal dividers only | `small` \| `medium` \| `large` | - | 5.25.0 |
+| `style` | Inline styles for the container | CSSProperties | - | - |
+| `className` | Class name for the container | string | - | - |
+
+<Warning>
+The `type` prop (for direction) is deprecated. Use `orientation` or the `vertical` boolean instead.
+Similarly, `orientationMargin` is deprecated — use `titlePlacement` to control label position.
+</Warning>

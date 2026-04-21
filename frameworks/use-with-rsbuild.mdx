@@ -1,0 +1,136 @@
+---
+title: "Using Ant Design with Rsbuild: Fast Rspack-Powered Setup"
+description: "Create an Rsbuild React project, install antd, and apply a custom theme using ConfigProvider — leveraging Rspack's speed for rapid development builds."
+---
+
+Rsbuild is a build tool driven by Rspack, offering significantly faster build times than webpack-based toolchains while maintaining broad compatibility. This guide walks through scaffolding a new Rsbuild project, adding Ant Design, and customizing the component theme — all with minimal configuration.
+
+## Prerequisites
+
+Before starting, ensure you have Node.js installed. You may also want to install [yarn](https://github.com/yarnpkg/yarn), [pnpm](https://pnpm.io/), or [bun](https://bun.sh/).
+
+## Setup
+
+<Steps>
+  <Step title="Create a new Rsbuild project">
+    Scaffold a new project using your preferred package manager. The `create-rsbuild` tool provides several templates — select the **React** template when prompted.
+
+    <CodeGroup>
+
+    ```bash npm
+    npm create rsbuild
+    ```
+
+    ```bash yarn
+    yarn create rsbuild
+    ```
+
+    ```bash pnpm
+    pnpm create rsbuild
+    ```
+
+    ```bash bun
+    bun create rsbuild
+    ```
+
+    </CodeGroup>
+
+    <Note>
+      If you encounter network errors during initialization, try configuring your proxy settings or switching to a different npm registry.
+    </Note>
+  </Step>
+
+  <Step title="Start the development server">
+    Navigate into the generated project directory and start the dev server.
+
+    ```bash
+    cd demo
+    npm run dev
+    ```
+
+    Open your browser at `http://localhost:3000`. If you see a page with the heading `Rsbuild with React`, the project is running correctly.
+  </Step>
+
+  <Step title="Install Ant Design">
+    Add `antd` as a dependency to your project.
+
+    <CodeGroup>
+
+    ```bash npm
+    npm install antd --save
+    ```
+
+    ```bash yarn
+    yarn add antd
+    ```
+
+    ```bash pnpm
+    pnpm install antd --save
+    ```
+
+    ```bash bun
+    bun add antd
+    ```
+
+    </CodeGroup>
+  </Step>
+
+  <Step title="Use an antd component">
+    Modify `src/App.tsx` to import and render an Ant Design component. No additional stylesheet imports are needed — antd's CSS-in-JS system handles styling automatically.
+
+    ```tsx
+    import React from 'react';
+    import { Button } from 'antd';
+
+    const App: React.FC = () => (
+      <div className="App">
+        <Button type="primary">Button</Button>
+      </div>
+    );
+
+    export default App;
+    ```
+
+    Save the file. The dev server will reload and you should see a blue primary button on the page.
+  </Step>
+</Steps>
+
+## Customize the theme
+
+Ant Design's design tokens can be customized globally using `ConfigProvider`. This lets you override colors, typography, border radius, and hundreds of other design tokens without writing custom CSS.
+
+Wrap your application (or a section of it) with `ConfigProvider` and pass a `theme` object:
+
+```tsx
+import React from 'react';
+import { ConfigProvider } from 'antd';
+
+const App: React.FC = () => (
+  <ConfigProvider theme={{ token: { colorPrimary: '#00b96b' } }}>
+    <MyApp />
+  </ConfigProvider>
+);
+
+export default App;
+```
+
+<Tip>
+  The `token` object accepts any of antd's global design tokens. For a full list of available tokens and advanced theming options including dark mode and component-level overrides, see the [Customize Theme documentation](/advanced/customize-theme).
+</Tip>
+
+## Other framework guides
+
+<CardGroup cols={2}>
+  <Card title="Use with Vite" icon="arrow-right" href="/frameworks/use-with-vite">
+    Another fast client-only setup option using Vite's native ESM dev server.
+  </Card>
+  <Card title="Use with Next.js" icon="arrow-right" href="/frameworks/use-with-next">
+    Server-side rendering with first-screen style extraction for App Router and Pages Router.
+  </Card>
+  <Card title="Use with Umi" icon="arrow-right" href="/frameworks/use-with-umi">
+    Full enterprise application framework with routing, data fetching, and ProLayout.
+  </Card>
+  <Card title="Rsbuild documentation" icon="book" href="https://rsbuild.dev">
+    Explore Rsbuild's plugin system, environment variables, build configuration, and more.
+  </Card>
+</CardGroup>

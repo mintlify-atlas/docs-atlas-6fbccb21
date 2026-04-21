@@ -1,0 +1,287 @@
+---
+title: "Upload: File Selection, Progress Tracking, and Drag-and-Drop"
+description: "Ant Design Upload handles file selection, drag-and-drop, upload progress, and controlled file lists via beforeUpload, onChange, and fileList props."
+---
+
+`Upload` wraps the browser's file input to provide progress tracking, file previews, and a consistent list UI. It supports click-to-open, drag-and-drop (`Upload.Dragger`), and directory upload. The component sends files to the `action` URL by default, but you can intercept with `beforeUpload` or replace the network layer entirely with `customRequest`.
+
+## Basic usage
+
+Provide an `action` URL and an `onChange` handler to respond to upload state changes.
+
+```tsx basic-upload.tsx
+import React from 'react';
+import { UploadOutlined } from '@ant-design/icons';
+import { Button, message, Upload } from 'antd';
+import type { UploadProps } from 'antd';
+
+const uploadProps: UploadProps = {
+  name: 'file',
+  action: 'https://your-api.example.com/upload',
+  headers: { authorization: 'Bearer <token>' },
+  onChange(info) {
+    if (info.file.status === 'done') {
+      message.success(`${info.file.name} uploaded successfully.`);
+    } else if (info.file.status === 'error') {
+      message.error(`${info.file.name} upload failed.`);
+    }
+  },
+};
+
+const BasicUpload: React.FC = () => (
+  <Upload {...uploadProps}>
+    <Button icon={<UploadOutlined />}>Click to upload</Button>
+  </Upload>
+);
+
+export default BasicUpload;
+```
+
+## Common patterns
+
+### Controlled file list
+
+Managing `fileList` in state gives you full control over which files are listed and their display status. Always update `fileList` in `onChange` to keep the component in sync.
+
+```tsx controlled-file-list.tsx
+import React, { useState } from 'react';
+import { UploadOutlined } from '@ant-design/icons';
+import { Button, Upload } from 'antd';
+import type { UploadFile, UploadProps } from 'antd';
+
+const ControlledUpload: React.FC = () => {
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+
+  const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) => {
+    setFileList(newFileList);
+  };
+
+  return (
+    <Upload
+      action="https://your-api.example.com/upload"
+      fileList={fileList}
+      onChange={handleChange}
+      maxCount={3}
+    >
+      <Button icon={<UploadOutlined />}>Upload (max 3)</Button>
+    </Upload>
+  );
+};
+```
+
+### beforeUpload for validation and transformation
+
+`beforeUpload` runs before the HTTP request. Return `false` to cancel the upload, return `Upload.LIST_IGNORE` to cancel without adding the file to the list, or return a modified `File` object (or a Promise resolving to one) to transform the file before upload.
+
+```tsx before-upload.tsx
+import React, { useState } from 'react';
+import { UploadOutlined } from '@ant-design/icons';
+import { Button, message, Upload } from 'antd';
+import type { UploadFile, UploadProps, RcFile } from 'antd';
+
+const MAX_SIZE_MB = 2;
+
+const ValidatedUpload: React.FC = () => {
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+
+  const beforeUpload = (file: RcFile) => {
+    const isImage = file.type.startsWith('image/');
+    if (!isImage) {
+      message.error('Only image files are allowed.');
+      return Upload.LIST_IGNORE;
+    }
+
+    const isSmallEnough = file.size / 1024 / 1024 < MAX_SIZE_MB;
+    if (!isSmallEnough) {
+      message.error(`File must be smaller than ${MAX_SIZE_MB} MB.`);
+      return Upload.LIST_IGNORE;
+    }
+
+    return true;
+  };
+
+  return (
+    <Upload
+      accept="image/*"
+      action="https://your-api.example.com/upload"
+      fileList={fileList}
+      beforeUpload={beforeUpload}
+      onChange={({ fileList: newList }) => setFileList(newList)}
+    >
+      <Button icon={<UploadOutlined />}>Upload image</Button>
+    </Upload>
+  );
+};
+```
+
+### Picture card layout
+
+Set `listType="picture-card"` to render a photo-wall style grid where users can preview and remove uploaded images. The trigger area renders as a bordered card.
+
+```tsx picture-card.tsx
+import React, { useState } from 'react';
+import { PlusOutlined } from '@ant-design/icons';
+import { Upload } from 'antd';
+import type { UploadFile } from 'antd';
+
+const PictureCardUpload: React.FC = () => {
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+
+  return (
+    <Upload
+      action="https://your-api.example.com/upload"
+      listType="picture-card"
+      fileList={fileList}
+      onChange={({ fileList: newList }) => setFileList(newList)}
+      accept="image/*"
+      maxCount={8}
+    >
+      {fileList.length < 8 && (
+        <div>
+          <PlusOutlined />
+          <div style={{ marginTop: 8 }}>Upload</div>
+        </div>
+      )}
+    </Upload>
+  );
+};
+```
+
+### Drag-and-drop with Upload.Dragger
+
+`Upload.Dragger` renders a large drop zone. It accepts the same props as `Upload`.
+
+```tsx drag-upload.tsx
+import React from 'react';
+import { InboxOutlined } from '@ant-design/icons';
+import { message, Upload } from 'antd';
+import type { UploadProps } from 'antd';
+
+const { Dragger } = Upload;
+
+const draggerProps: UploadProps = {
+  name: 'file',
+  multiple: true,
+  action: 'https://your-api.example.com/upload',
+  onChange(info) {
+    const { status } = info.file;
+    if (status === 'done') {
+      message.success(`${info.file.name} uploaded.`);
+    } else if (status === 'error') {
+      message.error(`${info.file.name} failed.`);
+    }
+  },
+  onDrop(e) {
+    console.log('Dropped files:', e.dataTransfer.files);
+  },
+};
+
+const DragUpload: React.FC = () => (
+  <Dragger {...draggerProps}>
+    <p className="ant-upload-drag-icon">
+      <InboxOutlined />
+    </p>
+    <p className="ant-upload-text">Click or drag files to this area</p>
+    <p className="ant-upload-hint">
+      Supports single or batch upload. Do not upload confidential data.
+    </p>
+  </Dragger>
+);
+```
+
+### Custom upload request
+
+Use `customRequest` to replace the built-in XHR with your own implementation — for example, to upload directly to cloud storage with a presigned URL.
+
+```tsx custom-request.tsx
+import React, { useState } from 'react';
+import { UploadOutlined } from '@ant-design/icons';
+import { Button, Upload } from 'antd';
+import type { UploadFile, UploadRequestOption } from 'rc-upload/lib/interface';
+
+const CustomRequestUpload: React.FC = () => {
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+
+  const customRequest = async ({ file, onSuccess, onError, onProgress }: UploadRequestOption) => {
+    try {
+      // 1. Fetch a presigned URL from your backend
+      const { url } = await fetch('/api/presigned-url').then((r) => r.json());
+
+      // 2. Upload directly to storage
+      await fetch(url, {
+        method: 'PUT',
+        body: file,
+      });
+
+      onSuccess?.('done');
+    } catch (err) {
+      onError?.(err as Error);
+    }
+  };
+
+  return (
+    <Upload
+      customRequest={customRequest}
+      fileList={fileList}
+      onChange={({ fileList: newList }) => setFileList(newList)}
+    >
+      <Button icon={<UploadOutlined />}>Upload to S3</Button>
+    </Upload>
+  );
+};
+```
+
+## Props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `action` | Upload endpoint URL | `string \| (file) => Promise<string>` | — |
+| `fileList` | Controlled list of uploaded files | `UploadFile[]` | — |
+| `defaultFileList` | Uncontrolled initial file list | `object[]` | — |
+| `accept` | Accepted file types (MIME types or extensions) | `string \| AcceptObject` | — |
+| `multiple` | Allow selecting multiple files at once | `boolean` | `false` |
+| `maxCount` | Maximum number of files. Replaces current file when `1` | `number` | — |
+| `listType` | File list display style | `text` \| `picture` \| `picture-card` \| `picture-circle` | `text` |
+| `showUploadList` | Show the built-in file list | `boolean \| { showPreviewIcon, showRemoveIcon, showDownloadIcon }` | `true` |
+| `directory` | Allow uploading an entire directory | `boolean` | `false` |
+| `disabled` | Disable the upload button | `boolean` | `false` |
+| `headers` | HTTP request headers | `object` | — |
+| `data` | Extra form data sent with each upload | `object \| (file) => object` | — |
+| `name` | Field name in the multipart form data | `string` | `file` |
+| `method` | HTTP method for the upload request | `string` | `post` |
+| `withCredentials` | Include cookies in the upload request | `boolean` | `false` |
+| `beforeUpload` | Hook called before upload starts. Return `false` or `Upload.LIST_IGNORE` to cancel | `(file, fileList) => boolean \| Promise<File> \| 'LIST_IGNORE'` | — |
+| `customRequest` | Replace the default XHR upload with a custom implementation | `(options) => void` | — |
+| `progress` | Custom progress bar configuration | `ProgressProps` | `{ strokeWidth: 2, showInfo: false }` |
+| `previewFile` | Custom file preview logic | `(file: File \| Blob) => Promise<string>` | — |
+| `iconRender` | Custom icon renderer for each file in the list | `(file, listType?) => ReactNode` | — |
+| `itemRender` | Custom list item renderer | `(originNode, file, fileList, actions) => ReactNode` | — |
+| `onChange` | Called at every stage: selecting, uploading, done, error | `({ file, fileList, event }) => void` | — |
+| `onRemove` | Called when the remove button is clicked. Return `false` to cancel | `(file) => boolean \| Promise` | — |
+| `onPreview` | Called when the file name or preview icon is clicked | `(file) => void` | — |
+| `onDownload` | Called when the download icon is clicked | `(file) => void` | — |
+| `onDrop` | Called when files are dropped onto a `Dragger` | `(e: DragEvent) => void` | — |
+
+## UploadFile shape
+
+| Field | Description | Type |
+|-------|-------------|------|
+| `uid` | Unique identifier (auto-generated if omitted) | `string` |
+| `name` | Display file name | `string` |
+| `status` | Upload state | `uploading` \| `done` \| `error` \| `removed` |
+| `percent` | Upload progress (0–100) | `number` |
+| `url` | URL for a download link | `string` |
+| `thumbUrl` | Thumbnail image URL | `string` |
+| `response` | Server response body | `any` |
+
+<Note>
+  The `onChange` callback fires at every upload phase: when the user selects a file, while it uploads (with progress events), and when it succeeds or fails. Always update your `fileList` state from the `fileList` property in the callback argument, not from the `file` property alone.
+</Note>
+
+<Warning>
+  When `beforeUpload` returns `false`, the `file` object in the `onChange` info is the raw `File` object rather than an `UploadFile`. Access the original file via `info.file.originFileObj` to handle both cases uniformly.
+</Warning>
+
+<Tip>
+  Use `maxCount={1}` when you only need a single file. The component will automatically replace the current file when a new one is selected, keeping the list to one entry without extra state management.
+</Tip>

@@ -1,0 +1,168 @@
+---
+title: "Flex: Ant Design Flexbox Layout Container"
+description: "Arrange block-level children horizontally or vertically with Ant Design Flex — supports gap, alignment, wrap, and all CSS flex shorthand properties."
+---
+
+`Flex` is a block-level layout container that maps directly to CSS Flexbox. Use it when you need to arrange child elements in a row or column, control alignment, add gaps, or handle wrapping. Unlike `Space`, `Flex` does not add a wrapper element around each child — it operates on the children directly, making it better suited for block-level layout.
+
+<Tip>
+**`Flex` vs `Space`:** Use `Space` for inline elements that need equal gaps (e.g., action button groups). Use `Flex` when you need full control over block-level flow, stretching, or alignment.
+</Tip>
+
+## Basic usage
+
+```tsx basic-flex.tsx
+import React from 'react';
+import { Flex, Button } from 'antd';
+
+const App: React.FC = () => (
+  <Flex gap="small">
+    <Button type="primary">Action 1</Button>
+    <Button>Action 2</Button>
+    <Button type="dashed">Action 3</Button>
+  </Flex>
+);
+
+export default App;
+```
+
+## Vertical layout
+
+Set `vertical` (or `orientation="vertical"`) to stack children in a column:
+
+```tsx vertical-flex.tsx
+import React from 'react';
+import { Flex, Button } from 'antd';
+
+const App: React.FC = () => (
+  <Flex vertical gap="small">
+    <Button type="primary">Step 1</Button>
+    <Button>Step 2</Button>
+    <Button type="dashed">Step 3</Button>
+  </Flex>
+);
+
+export default App;
+```
+
+## Alignment
+
+Use `justify` (main axis) and `align` (cross axis) to position children. These accept any valid CSS `justify-content` and `align-items` values:
+
+```tsx flex-alignment.tsx
+import React from 'react';
+import { Flex } from 'antd';
+
+const boxStyle: React.CSSProperties = {
+  width: 80,
+  height: 80,
+  background: '#1677ff',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: '#fff',
+};
+
+const App: React.FC = () => (
+  <>
+    {/* Center everything */}
+    <Flex justify="center" align="center" style={{ height: 120, background: '#f5f5f5' }}>
+      <div style={boxStyle}>A</div>
+      <div style={boxStyle}>B</div>
+    </Flex>
+
+    {/* Space between with bottom alignment */}
+    <Flex justify="space-between" align="flex-end" style={{ height: 120, background: '#f5f5f5', marginTop: 8 }}>
+      <div style={{ ...boxStyle, height: 40 }}>A</div>
+      <div style={boxStyle}>B</div>
+      <div style={{ ...boxStyle, height: 60 }}>C</div>
+    </Flex>
+  </>
+);
+
+export default App;
+```
+
+## Gap
+
+`gap` accepts the preset strings `"small"`, `"medium"`, `"large"`, or any CSS length value:
+
+```tsx flex-gap.tsx
+import React from 'react';
+import { Flex, Button } from 'antd';
+
+const App: React.FC = () => (
+  <>
+    <Flex gap="small">
+      <Button>Small</Button><Button>Small</Button><Button>Small</Button>
+    </Flex>
+    <Flex gap="middle" style={{ marginTop: 8 }}>
+      <Button>Middle</Button><Button>Middle</Button><Button>Middle</Button>
+    </Flex>
+    <Flex gap="large" style={{ marginTop: 8 }}>
+      <Button>Large</Button><Button>Large</Button><Button>Large</Button>
+    </Flex>
+    <Flex gap={32} style={{ marginTop: 8 }}>
+      <Button>32px</Button><Button>32px</Button><Button>32px</Button>
+    </Flex>
+  </>
+);
+
+export default App;
+```
+
+## Wrapping
+
+Set `wrap` to allow children to wrap onto the next line when the container is full:
+
+```tsx flex-wrap.tsx
+import React from 'react';
+import { Flex, Button } from 'antd';
+
+const App: React.FC = () => (
+  <Flex wrap gap="small" style={{ maxWidth: 300 }}>
+    {Array.from({ length: 8 }).map((_, i) => (
+      <Button key={i}>Button {i + 1}</Button>
+    ))}
+  </Flex>
+);
+
+export default App;
+```
+
+## Custom element type
+
+By default `Flex` renders a `<div>`. Use the `component` prop to render as any other element or component:
+
+```tsx flex-component.tsx
+import React from 'react';
+import { Flex } from 'antd';
+
+const App: React.FC = () => (
+  <Flex component="section" gap="small">
+    <p>Item 1</p>
+    <p>Item 2</p>
+  </Flex>
+);
+
+export default App;
+```
+
+## API
+
+`Flex` is available since `antd@5.10.0`.
+
+| Property | Description | Type | Default |
+|----------|-------------|------|---------|
+| `vertical` | Stack children vertically (`flex-direction: column`) | boolean | `false` |
+| `orientation` | Direction of the flex container | `horizontal` \| `vertical` | `horizontal` |
+| `justify` | Main-axis alignment (CSS `justify-content`) | string | `normal` |
+| `align` | Cross-axis alignment (CSS `align-items`) | string | `normal` |
+| `gap` | Gap between children | `small` \| `medium` \| `large` \| `string` \| `number` | - |
+| `wrap` | Whether children can wrap to the next line | CSS `flex-wrap` \| boolean | `nowrap` |
+| `flex` | CSS `flex` shorthand for the container | string | `normal` |
+| `component` | Root element or component type | `React.ComponentType` | `div` |
+
+<Note>
+`Flex` accepts all standard HTML `<div>` props including `className`, `style`, and event handlers.
+</Note>

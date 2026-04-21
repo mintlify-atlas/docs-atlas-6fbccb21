@@ -1,0 +1,303 @@
+---
+title: "Using Ant Design with Next.js: SSR and App Router Guide"
+description: "Set up antd in a Next.js project with proper server-side rendering support, covering both App Router and Pages Router with first-screen style extraction."
+---
+
+Next.js is the most popular React server-side isomorphic framework, supporting both the modern App Router and the classic Pages Router. This guide covers installing Ant Design in a Next.js project and — critically — configuring proper style injection so antd components render correctly on first load without any visual flicker caused by missing CSS.
+
+## Prerequisites
+
+Before starting, ensure you have Node.js installed. You may also want to install [yarn](https://github.com/yarnpkg/yarn/), [pnpm](https://pnpm.io/), or [bun](https://bun.sh/).
+
+## Install and initialize
+
+<Steps>
+  <Step title="Create a Next.js project">
+    Scaffold a new Next.js application using your preferred package manager.
+
+    <CodeGroup>
+
+    ```bash npm
+    npx create-next-app antd-demo
+    ```
+
+    ```bash yarn
+    yarn create next-app antd-demo
+    ```
+
+    ```bash pnpm
+    pnpm create next-app antd-demo
+    ```
+
+    ```bash bun
+    bun create next-app antd-demo
+    ```
+
+    </CodeGroup>
+
+    <Note>
+      If you encounter network errors during initialization, try configuring your proxy settings or switching to a different npm registry.
+    </Note>
+  </Step>
+
+  <Step title="Start the development server">
+    Navigate into the project and start the dev server.
+
+    ```bash
+    cd antd-demo
+    npm run dev
+    ```
+
+    Open your browser at `http://localhost:3000/`. If you see the Next.js logo, the project is running correctly.
+  </Step>
+
+  <Step title="Install Ant Design">
+    Add `antd` to your project.
+
+    <CodeGroup>
+
+    ```bash npm
+    npm install antd --save
+    ```
+
+    ```bash yarn
+    yarn add antd
+    ```
+
+    ```bash pnpm
+    pnpm install antd --save
+    ```
+
+    ```bash bun
+    bun add antd
+    ```
+
+    </CodeGroup>
+  </Step>
+
+  <Step title="Add an antd component">
+    Modify `src/app/page.tsx` to import and render a Button component.
+
+    ```tsx
+    import React from 'react';
+    import { Button } from 'antd';
+
+    const Home = () => (
+      <div className="App">
+        <Button type="primary">Button</Button>
+      </div>
+    );
+
+    export default Home;
+    ```
+
+    You will see a blue primary button on the page. However, you may notice that antd components are missing styles on the first screen render. The following sections explain how to fix this for each router mode.
+  </Step>
+</Steps>
+
+## App Router setup
+
+If you are using the Next.js App Router, antd's CSS-in-JS styles need to be extracted and injected into the HTML on the server to prevent a flash of unstyled content on first load.
+
+<Steps>
+  <Step title="Install @ant-design/nextjs-registry">
+    <CodeGroup>
+
+    ```bash npm
+    npm install @ant-design/nextjs-registry --save
+    ```
+
+    ```bash yarn
+    yarn add @ant-design/nextjs-registry
+    ```
+
+    ```bash pnpm
+    pnpm install @ant-design/nextjs-registry --save
+    ```
+
+    ```bash bun
+    bun add @ant-design/nextjs-registry
+    ```
+
+    </CodeGroup>
+  </Step>
+
+  <Step title="Wrap your layout with AntdRegistry">
+    Update `app/layout.tsx` to wrap children with the `AntdRegistry` component. This extracts antd's first-screen styles and injects them inline into the HTML response.
+
+    ```tsx
+    import React from 'react';
+    import { AntdRegistry } from '@ant-design/nextjs-registry';
+
+    const RootLayout = ({ children }: React.PropsWithChildren) => (
+      <html lang="en">
+        <body>
+          <AntdRegistry>{children}</AntdRegistry>
+        </body>
+      </html>
+    );
+
+    export default RootLayout;
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+  Next.js App Router does not currently support using sub-components via dot notation like `<Select.Option />` or `<Typography.Text />`. Import these sub-components directly from their paths instead.
+</Warning>
+
+For a complete working example, see [with-nextjs-app-router-inline-style](https://github.com/ant-design/ant-design-examples/tree/main/examples/with-nextjs-app-router-inline-style).
+
+## Pages Router setup
+
+If you are using the Next.js Pages Router, you need to use `@ant-design/cssinjs` to extract antd styles during server-side rendering.
+
+<Steps>
+  <Step title="Install @ant-design/cssinjs">
+    <CodeGroup>
+
+    ```bash npm
+    npm install @ant-design/cssinjs --save
+    ```
+
+    ```bash yarn
+    yarn add @ant-design/cssinjs
+    ```
+
+    ```bash pnpm
+    pnpm install @ant-design/cssinjs --save
+    ```
+
+    ```bash bun
+    bun add @ant-design/cssinjs
+    ```
+
+    </CodeGroup>
+
+    <Warning>
+      The version of `@ant-design/cssinjs` you install must match the version used internally by `antd` in your `node_modules`. Mismatched versions cause multiple React instances that prevent styles from being read correctly. Run `npm ls @ant-design/cssinjs` to check which version antd depends on.
+    </Warning>
+  </Step>
+
+  <Step title="Rewrite pages/_document.tsx">
+    Override the custom Document to extract antd styles during `getInitialProps` and inject them into the HTML `<head>`.
+
+    ```tsx
+    import React from 'react';
+    import { createCache, extractStyle, StyleProvider } from '@ant-design/cssinjs';
+    import Document, { Head, Html, Main, NextScript } from 'next/document';
+    import type { DocumentContext } from 'next/document';
+
+    const MyDocument = () => (
+      <Html lang="en">
+        <Head />
+        <body>
+          <Main />
+          <NextScript />
+        </body>
+      </Html>
+    );
+
+    MyDocument.getInitialProps = async (ctx: DocumentContext) => {
+      const cache = createCache();
+      const originalRenderPage = ctx.renderPage;
+      ctx.renderPage = () =>
+        originalRenderPage({
+          enhanceApp: (App) => (props) => (
+            <StyleProvider cache={cache}>
+              <App {...props} />
+            </StyleProvider>
+          ),
+        });
+
+      const initialProps = await Document.getInitialProps(ctx);
+      const style = extractStyle(cache, true);
+      return {
+        ...initialProps,
+        styles: (
+          <>
+            {initialProps.styles}
+            <style dangerouslySetInnerHTML={{ __html: style }} />
+          </>
+        ),
+      };
+    };
+
+    export default MyDocument;
+    ```
+  </Step>
+
+  <Step title="Create a theme configuration">
+    Define your custom theme tokens in a dedicated file.
+
+    ```ts
+    // theme/themeConfig.ts
+    import type { ThemeConfig } from 'antd';
+
+    const theme: ThemeConfig = {
+      token: {
+        fontSize: 16,
+        colorPrimary: '#52c41a',
+      },
+    };
+
+    export default theme;
+    ```
+  </Step>
+
+  <Step title="Rewrite pages/_app.tsx">
+    Wrap your application with `ConfigProvider` and pass the theme configuration.
+
+    ```tsx
+    import React from 'react';
+    import { ConfigProvider } from 'antd';
+    import type { AppProps } from 'next/app';
+
+    import theme from './theme/themeConfig';
+
+    const App = ({ Component, pageProps }: AppProps) => (
+      <ConfigProvider theme={theme}>
+        <Component {...pageProps} />
+      </ConfigProvider>
+    );
+
+    export default App;
+    ```
+  </Step>
+
+  <Step title="Use antd in a page component">
+    Now import and use antd components in any page.
+
+    ```tsx
+    import React from 'react';
+    import { Button } from 'antd';
+
+    const Home = () => (
+      <div className="App">
+        <Button type="primary">Button</Button>
+      </div>
+    );
+
+    export default Home;
+    ```
+  </Step>
+</Steps>
+
+For a complete working example, see [with-nextjs-inline-style](https://github.com/ant-design/ant-design-examples/tree/main/examples/with-nextjs-inline-style).
+
+## Other framework guides
+
+<CardGroup cols={2}>
+  <Card title="Use with Vite" icon="arrow-right" href="/frameworks/use-with-vite">
+    The simplest antd setup — no SSR configuration needed for client-only Vite apps.
+  </Card>
+  <Card title="Use with Umi" icon="arrow-right" href="/frameworks/use-with-umi">
+    Enterprise-grade React applications with Umi's integrated routing, data fetching, and ProLayout.
+  </Card>
+  <Card title="Use with Rsbuild" icon="arrow-right" href="/frameworks/use-with-rsbuild">
+    Fast builds powered by Rspack with straightforward antd integration.
+  </Card>
+  <Card title="Next.js documentation" icon="book" href="https://nextjs.org/">
+    Explore Next.js features including server components, data fetching, and deployment options.
+  </Card>
+</CardGroup>

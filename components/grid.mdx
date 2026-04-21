@@ -1,0 +1,221 @@
+---
+title: "Grid: Ant Design 24-Column Responsive Layout System"
+description: "Build responsive multi-column layouts with Ant Design Row and Col — 24-column spans, gutters, offsets, and xs/sm/md/lg/xl breakpoints."
+---
+
+Ant Design's grid system divides the horizontal space into 24 equal columns using `Row` and `Col` components built on CSS Flexbox. Place `Col` elements directly inside a `Row`, set a `span` from 1–24 to control width, and use the responsive props (`xs`, `sm`, `md`, `lg`, `xl`, `xxl`) for breakpoint-based sizing.
+
+## Basic usage
+
+```tsx basic-grid.tsx
+import React from 'react';
+import { Col, Row } from 'antd';
+
+const App: React.FC = () => (
+  <>
+    {/* Full width */}
+    <Row>
+      <Col span={24}>col-24</Col>
+    </Row>
+
+    {/* Two equal columns */}
+    <Row>
+      <Col span={12}>col-12</Col>
+      <Col span={12}>col-12</Col>
+    </Row>
+
+    {/* Three equal columns */}
+    <Row>
+      <Col span={8}>col-8</Col>
+      <Col span={8}>col-8</Col>
+      <Col span={8}>col-8</Col>
+    </Row>
+
+    {/* Four equal columns */}
+    <Row>
+      <Col span={6}>col-6</Col>
+      <Col span={6}>col-6</Col>
+      <Col span={6}>col-6</Col>
+      <Col span={6}>col-6</Col>
+    </Row>
+  </>
+);
+
+export default App;
+```
+
+## Gutters
+
+Use the `gutter` prop on `Row` to add spacing between columns. Pass a single number for horizontal-only spacing, or an array `[horizontal, vertical]` for both axes. You can also use responsive objects:
+
+```tsx grid-gutter.tsx
+import React from 'react';
+import { Col, Row } from 'antd';
+
+const App: React.FC = () => (
+  <>
+    {/* 16px horizontal gutter */}
+    <Row gutter={16}>
+      <Col span={8}><div style={{ background: '#1677ff20' }}>col-8</div></Col>
+      <Col span={8}><div style={{ background: '#1677ff20' }}>col-8</div></Col>
+      <Col span={8}><div style={{ background: '#1677ff20' }}>col-8</div></Col>
+    </Row>
+
+    {/* 16px horizontal + 8px vertical */}
+    <Row gutter={[16, 8]} style={{ marginTop: 16 }}>
+      <Col span={12}><div style={{ background: '#1677ff20' }}>col-12</div></Col>
+      <Col span={12}><div style={{ background: '#1677ff20' }}>col-12</div></Col>
+      <Col span={12}><div style={{ background: '#1677ff20' }}>col-12</div></Col>
+      <Col span={12}><div style={{ background: '#1677ff20' }}>col-12</div></Col>
+    </Row>
+  </>
+);
+
+export default App;
+```
+
+## Responsive columns
+
+Pass a number or config object to each breakpoint prop. The grid follows Bootstrap 4 breakpoint rules:
+
+```tsx responsive-grid.tsx
+import React from 'react';
+import { Col, Row } from 'antd';
+
+const App: React.FC = () => (
+  <Row>
+    {/* 2 cols on xs, 4 on sm, 6 on md, 8 on lg, 10 on xl */}
+    <Col xs={2} sm={4} md={6} lg={8} xl={10}>Col</Col>
+    <Col xs={20} sm={16} md={12} lg={8} xl={4}>Col</Col>
+    <Col xs={2} sm={4} md={6} lg={8} xl={10}>Col</Col>
+  </Row>
+);
+
+export default App;
+```
+
+Pass an object to a breakpoint prop to also set `offset`, `order`, `push`, or `pull`:
+
+```tsx responsive-object.tsx
+import React from 'react';
+import { Col, Row } from 'antd';
+
+const App: React.FC = () => (
+  <Row>
+    <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6, offset: 2 }}>
+      Col
+    </Col>
+    <Col xs={{ span: 11, offset: 1 }} lg={{ span: 6, offset: 2 }}>
+      Col
+    </Col>
+  </Row>
+);
+
+export default App;
+```
+
+## Alignment and justification
+
+Control horizontal distribution with `justify` and vertical alignment with `align` on `Row`:
+
+```tsx grid-align.tsx
+import React from 'react';
+import { Col, Row } from 'antd';
+
+const boxStyle: React.CSSProperties = {
+  background: '#1677ff',
+  height: 60,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: '#fff',
+};
+
+const App: React.FC = () => (
+  <>
+    <Row justify="center" style={{ marginBottom: 16 }}>
+      <Col span={4}><div style={boxStyle}>col-4</div></Col>
+      <Col span={4}><div style={boxStyle}>col-4</div></Col>
+    </Row>
+
+    <Row justify="space-between">
+      <Col span={4}><div style={boxStyle}>col-4</div></Col>
+      <Col span={4}><div style={boxStyle}>col-4</div></Col>
+      <Col span={4}><div style={boxStyle}>col-4</div></Col>
+    </Row>
+  </>
+);
+
+export default App;
+```
+
+## Column offset
+
+Shift a column to the right by a number of cells using `offset`:
+
+```tsx col-offset.tsx
+import React from 'react';
+import { Col, Row } from 'antd';
+
+const App: React.FC = () => (
+  <>
+    <Row>
+      <Col span={8}>col-8</Col>
+      <Col span={8} offset={8}>col-8 offset-8</Col>
+    </Row>
+    <Row>
+      <Col span={6} offset={6}>col-6 offset-6</Col>
+      <Col span={6} offset={6}>col-6 offset-6</Col>
+    </Row>
+  </>
+);
+
+export default App;
+```
+
+## API
+
+### Row
+
+| Property | Description | Type | Default |
+|----------|-------------|------|---------|
+| `gutter` | Column spacing. Array for `[horizontal, vertical]`. Object for responsive. | `number` \| `string` \| `object` \| `[number, number]` | `0` |
+| `justify` | Horizontal alignment (maps to `justify-content`) | `start` \| `end` \| `center` \| `space-around` \| `space-between` \| `space-evenly` | `start` |
+| `align` | Vertical alignment (maps to `align-items`) | `top` \| `middle` \| `bottom` \| `stretch` | `top` |
+| `wrap` | Allow columns to wrap to next line | boolean | `true` |
+
+### Col
+
+| Property | Description | Type | Default |
+|----------|-------------|------|---------|
+| `span` | Number of columns to span (0 = `display: none`) | number | - |
+| `offset` | Columns to offset from the left | number | `0` |
+| `order` | Flex order | number | `0` |
+| `push` | Move right by N columns | number | `0` |
+| `pull` | Move left by N columns | number | `0` |
+| `flex` | Flex shorthand for the column | `string` \| `number` | - |
+| `xs` | Config for `< 576px` | `number` \| `{ span, offset, order, push, pull }` | - |
+| `sm` | Config for `≥ 576px` | `number` \| object | - |
+| `md` | Config for `≥ 768px` | `number` \| object | - |
+| `lg` | Config for `≥ 992px` | `number` \| object | - |
+| `xl` | Config for `≥ 1200px` | `number` \| object | - |
+| `xxl` | Config for `≥ 1600px` | `number` \| object | - |
+| `xxxl` | Config for `≥ 1920px` (v6.3.0+) | `number` \| object | - |
+
+<Note>
+If the total `span` of all `Col` elements in a `Row` exceeds 24, the overflow columns wrap to the next line (when `wrap` is `true`).
+</Note>
+
+## Breakpoint reference
+
+| Breakpoint | Minimum width |
+|------------|---------------|
+| `xs` | < 576px (default / mobile) |
+| `sm` | ≥ 576px |
+| `md` | ≥ 768px |
+| `lg` | ≥ 992px |
+| `xl` | ≥ 1200px |
+| `xxl` | ≥ 1600px |
+| `xxxl` | ≥ 1920px |
+
+Breakpoint values can be customized via `ConfigProvider` theme tokens (`screenXS`, `screenSM`, etc.) since v5.1.0.

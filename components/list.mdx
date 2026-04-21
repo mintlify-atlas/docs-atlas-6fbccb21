@@ -1,0 +1,211 @@
+---
+title: "List: Render vertical or grid lists of items"
+description: "Display collections of similar items with Ant Design List — supports avatars, descriptions, action links, infinite scroll, and responsive grid mode."
+---
+
+The `List` component renders a vertically stacked or grid-arranged collection of items. It is suited to feeds, result sets, and content summaries where each entry has a similar structure. Use `List.Item.Meta` for avatar, title, and description layouts, and `renderItem` to customise each row.
+
+<Warning>
+  `List` is **deprecated** in Ant Design and will be removed in the next major version. A replacement component, Listy, is planned for v6. For new projects, consider building list UIs with primitives or waiting for the official replacement.
+</Warning>
+
+## Installation
+
+```bash
+npm install antd
+```
+
+## Basic usage
+
+Provide a `dataSource` array and a `renderItem` function. Each item is passed to `renderItem` along with its index so you can build the row content.
+
+```tsx basic-list.tsx
+import React from 'react';
+import { List } from 'antd';
+
+const items = [
+  'Introduction to React',
+  'Understanding TypeScript',
+  'Ant Design component library',
+  'Building accessible UIs',
+];
+
+export default function BasicList() {
+  return (
+    <List
+      header={<strong>Articles</strong>}
+      footer={<span>4 articles total</span>}
+      bordered
+      dataSource={items}
+      renderItem={(item) => <List.Item>{item}</List.Item>}
+    />
+  );
+}
+```
+
+## List with meta
+
+Use `List.Item.Meta` inside each `List.Item` to render an avatar, a title, and a description in a consistent horizontal layout.
+
+```tsx list-with-meta.tsx
+import React from 'react';
+import { Avatar, List } from 'antd';
+
+interface Article {
+  id: number;
+  title: string;
+  author: string;
+  summary: string;
+  avatarUrl: string;
+}
+
+const data: Article[] = [
+  {
+    id: 1,
+    title: 'Getting started with Ant Design',
+    author: 'Alice',
+    summary: 'An introduction to building React UIs with the antd component library.',
+    avatarUrl: 'https://api.dicebear.com/7.x/miniavs/svg?seed=1',
+  },
+  {
+    id: 2,
+    title: 'Advanced Table patterns',
+    author: 'Bob',
+    summary: 'Sorting, filtering, and virtual scrolling in antd Table.',
+    avatarUrl: 'https://api.dicebear.com/7.x/miniavs/svg?seed=2',
+  },
+  {
+    id: 3,
+    title: 'Theming with Design Tokens',
+    author: 'Carol',
+    summary: 'Customise colours, spacing, and typography using the token system.',
+    avatarUrl: 'https://api.dicebear.com/7.x/miniavs/svg?seed=3',
+  },
+];
+
+export default function MetaList() {
+  return (
+    <List<Article>
+      itemLayout="horizontal"
+      dataSource={data}
+      rowKey="id"
+      renderItem={(item) => (
+        <List.Item>
+          <List.Item.Meta
+            avatar={<Avatar src={item.avatarUrl} />}
+            title={<a href="#">{item.title}</a>}
+            description={item.summary}
+          />
+          <span>{item.author}</span>
+        </List.Item>
+      )}
+    />
+  );
+}
+```
+
+## Grid layout
+
+Set the `grid` prop to arrange items in responsive columns. Use breakpoint keys (`xs`, `sm`, `md`, `lg`, `xl`, `xxl`) to control the column count at each viewport width.
+
+```tsx grid-list.tsx
+import React from 'react';
+import { Card, List } from 'antd';
+
+const products = [
+  { id: 1, name: 'Widget A', price: '$12.99' },
+  { id: 2, name: 'Widget B', price: '$8.49' },
+  { id: 3, name: 'Widget C', price: '$24.00' },
+  { id: 4, name: 'Widget D', price: '$5.99' },
+  { id: 5, name: 'Widget E', price: '$18.00' },
+  { id: 6, name: 'Widget F', price: '$9.99' },
+];
+
+export default function GridList() {
+  return (
+    <List
+      grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 3, xl: 3, xxl: 3 }}
+      dataSource={products}
+      rowKey="id"
+      renderItem={(item) => (
+        <List.Item>
+          <Card title={item.name}>{item.price}</Card>
+        </List.Item>
+      )}
+    />
+  );
+}
+```
+
+## Pagination
+
+Pass a `pagination` object to add built-in pagination below the list. The component handles slicing `dataSource` automatically based on the current page and page size.
+
+```tsx paginated-list.tsx
+import React from 'react';
+import { Avatar, List } from 'antd';
+
+const allItems = Array.from({ length: 30 }, (_, i) => ({
+  id: i + 1,
+  title: `Item ${i + 1}`,
+  description: `Description for item ${i + 1}`,
+}));
+
+export default function PaginatedList() {
+  return (
+    <List
+      itemLayout="horizontal"
+      dataSource={allItems}
+      rowKey="id"
+      pagination={{ pageSize: 8 }}
+      renderItem={(item) => (
+        <List.Item>
+          <List.Item.Meta
+            avatar={<Avatar>{item.id}</Avatar>}
+            title={item.title}
+            description={item.description}
+          />
+        </List.Item>
+      )}
+    />
+  );
+}
+```
+
+<Tip>
+  Use `loadMore` instead of `pagination` when you want an infinite-scroll or "load more" button pattern rather than page navigation.
+</Tip>
+
+## List props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `dataSource` | `T[]` | - | Array of items to render |
+| `renderItem` | `(item: T, index: number) => ReactNode` | - | Render function for each list item |
+| `rowKey` | `keyof T \| ((item: T) => React.Key)` | `"key"` | Unique key for each item |
+| `itemLayout` | `"horizontal" \| "vertical"` | `"horizontal"` | Layout direction for item content |
+| `grid` | `ListGridType` | - | Enable grid mode with responsive columns |
+| `pagination` | `PaginationConfig \| false` | `false` | Built-in pagination |
+| `loading` | `boolean \| SpinProps` | `false` | Show a loading spinner |
+| `loadMore` | `ReactNode` | - | Load-more content rendered below the list |
+| `bordered` | `boolean` | `false` | Show list border |
+| `split` | `boolean` | `true` | Show divider between items |
+| `size` | `"default" \| "large" \| "small"` | `"default"` | List size |
+| `header` | `ReactNode` | - | Header content above the list |
+| `footer` | `ReactNode` | - | Footer content below the list |
+| `locale` | `{ emptyText: ReactNode }` | - | Custom empty state text |
+
+## List.Item props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `actions` | `ReactNode[]` | Action links rendered at the right (horizontal) or bottom (vertical) |
+| `extra` | `ReactNode` | Extra content; appears on the right in vertical layout |
+
+## List.Item.Meta props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `avatar` | `ReactNode` | Avatar or icon on the left |
+| `title` | `ReactNode` | Primary text |
+| `description` | `ReactNode` | Secondary text below the title |

@@ -1,0 +1,181 @@
+---
+title: "Message: Global Toast Notifications for Ant Design"
+description: "Show brief, auto-dismissing feedback messages at the top of the screen in response to user actions such as form submissions or API calls."
+---
+
+Message provides lightweight, non-blocking toast notifications that appear at the top center of the page and dismiss automatically after a configurable duration. Use it to confirm that an action succeeded, warn about a potential problem, or report an error without interrupting the user's workflow.
+
+<Tip>
+  Use `message.useMessage()` inside components — it inherits your `ConfigProvider` theme, locale, and direction settings. The static API (`message.success()` etc.) is convenient but runs outside the React tree, so it cannot access those settings.
+</Tip>
+
+## Basic usage
+
+### Hook API (recommended)
+
+Call `message.useMessage()` at the top of your component to obtain an `api` object and a `contextHolder` node. Render `contextHolder` somewhere in your JSX tree, then call `api.success()`, `api.error()`, etc.
+
+```tsx message-hook.tsx
+import React from 'react';
+import { Button, message } from 'antd';
+
+export default function HookMessage() {
+  const [api, contextHolder] = message.useMessage();
+
+  return (
+    <>
+      {contextHolder}
+      <Button
+        type="primary"
+        onClick={() => api.success('File saved successfully!')}
+      >
+        Save
+      </Button>
+    </>
+  );
+}
+```
+
+### Static API
+
+The static methods work without any setup, making them useful in utility functions or event handlers outside the component tree. They do not inherit `ConfigProvider` configuration.
+
+```tsx message-static.tsx
+import { Button, message } from 'antd';
+
+export default function StaticMessage() {
+  return (
+    <Button onClick={() => message.success('Done!')}>
+      Submit
+    </Button>
+  );
+}
+```
+
+## Message types
+
+All five types accept the same argument shapes.
+
+<CodeGroup>
+
+```tsx message-success.tsx
+api.success('Profile updated.');
+```
+
+```tsx message-error.tsx
+api.error('Failed to connect. Please try again.');
+```
+
+```tsx message-warning.tsx
+api.warning('Storage is almost full.');
+```
+
+```tsx message-info.tsx
+api.info('Session will expire in 5 minutes.');
+```
+
+```tsx message-loading.tsx
+const hide = api.loading('Uploading…');
+// later, close it:
+hide();
+```
+
+</CodeGroup>
+
+## Custom duration and key
+
+Pass a config object instead of a plain string to control the auto-close delay, assign a unique `key` (for updating or deduplicating), or attach an `onClose` callback.
+
+```tsx message-config-object.tsx
+import React from 'react';
+import { Button, message } from 'antd';
+
+export default function ConfigMessage() {
+  const [api, contextHolder] = message.useMessage();
+
+  const update = () => {
+    api.open({
+      key: 'upload',
+      type: 'loading',
+      content: 'Uploading…',
+    });
+
+    setTimeout(() => {
+      api.open({
+        key: 'upload',      // same key replaces the previous message
+        type: 'success',
+        content: 'Upload complete!',
+        duration: 2,
+      });
+    }, 2000);
+  };
+
+  return (
+    <>
+      {contextHolder}
+      <Button onClick={update}>Upload</Button>
+    </>
+  );
+}
+```
+
+## Using with App
+
+Wrap your application in `<App>` and call `App.useApp().message` to get a context-aware API without managing `contextHolder` yourself.
+
+```tsx message-app.tsx
+import { App, Button } from 'antd';
+
+function SaveButton() {
+  const { message } = App.useApp();
+  return (
+    <Button onClick={() => message.success('Saved!')}>Save</Button>
+  );
+}
+
+export default function Page() {
+  return (
+    <App>
+      <SaveButton />
+    </App>
+  );
+}
+```
+
+## Props
+
+### message.open(config) / message\[type\](config)
+
+| Prop | Description | Type | Default |
+|---|---|---|---|
+| `content` | Message text or node | `ReactNode` | — |
+| `type` | Style variant | `'success' \| 'info' \| 'warning' \| 'error' \| 'loading'` | — |
+| `duration` | Seconds before auto-dismiss; `0` disables auto-dismiss | `number` | `3` |
+| `key` | Unique identifier; re-using the same key updates the existing message | `string \| number` | — |
+| `icon` | Custom leading icon | `ReactNode` | — |
+| `onClose` | Called when the message closes | `() => void` | — |
+| `onClick` | Called when the message is clicked | `() => void` | — |
+| `pauseOnHover` | Pause the dismiss timer while the cursor is over the message | `boolean` | `true` |
+| `className` | Custom CSS class | `string` | — |
+| `style` | Inline styles | `CSSProperties` | — |
+
+### message.config(options)
+
+Global defaults applied to every message. Call once at app startup.
+
+| Option | Description | Type | Default |
+|---|---|---|---|
+| `duration` | Default dismiss delay in seconds | `number` | `3` |
+| `top` | Distance from the top of the viewport | `string \| number` | `8` |
+| `maxCount` | Maximum simultaneous messages; oldest is dropped when exceeded | `number` | — |
+| `getContainer` | Custom mount target | `() => HTMLElement` | `document.body` |
+| `rtl` | Enable right-to-left mode | `boolean` | `false` |
+| `prefixCls` | CSS class prefix | `string` | `'ant-message'` |
+
+<Warning>
+  `message.success()`, `message.error()`, and the other static methods create a React root outside your component tree. They cannot read `ConfigProvider` theme tokens, locale, or `direction`. If consistent styling is important, use `message.useMessage()` or `App.useApp().message` instead.
+</Warning>
+
+<Note>
+  `message[type](content)` returns a thenable close function. You can chain `.then(afterClose)` to run code after the message disappears.
+</Note>

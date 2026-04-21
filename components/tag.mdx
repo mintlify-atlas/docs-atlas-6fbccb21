@@ -1,0 +1,219 @@
+---
+title: "Tag: Label and categorise content with short markers"
+description: "Mark items with categories or statuses using Ant Design Tag. Supports preset and custom colors, icons, close buttons, and a toggleable checkable variant."
+---
+
+The `Tag` component is a small inline label used to mark, categorise, or describe content. Common use cases include status indicators (`Active`, `Pending`, `Closed`), category labels on articles or products, and filterable attribute chips. Tags can be dismissible, clickable, or toggled on and off using the checkable variant.
+
+## Installation
+
+```bash
+npm install antd
+```
+
+## Basic usage
+
+Render a plain tag by wrapping text in `<Tag>`. Add a `color` prop to apply a preset or custom colour.
+
+```tsx basic-tags.tsx
+import React from 'react';
+import { Space, Tag } from 'antd';
+
+export default function BasicTags() {
+  return (
+    <Space wrap>
+      <Tag>Default</Tag>
+      <Tag color="blue">Blue</Tag>
+      <Tag color="green">Green</Tag>
+      <Tag color="volcano">Volcano</Tag>
+      <Tag color="gold">Gold</Tag>
+      <Tag color="purple">Purple</Tag>
+    </Space>
+  );
+}
+```
+
+## Preset status colours
+
+Use the semantic status colours (`success`, `processing`, `error`, `warning`, `default`) to convey meaning without choosing a hex value.
+
+```tsx status-tags.tsx
+import React from 'react';
+import { Space, Tag } from 'antd';
+
+export default function StatusTags() {
+  return (
+    <Space wrap>
+      <Tag color="success">Success</Tag>
+      <Tag color="processing">Processing</Tag>
+      <Tag color="error">Error</Tag>
+      <Tag color="warning">Warning</Tag>
+      <Tag color="default">Default</Tag>
+    </Space>
+  );
+}
+```
+
+## Closable tags
+
+Set `closable` to show a close icon. Handle `onClose` to remove the tag from your state. Call `e.preventDefault()` inside `onClose` to cancel the default hide behaviour and manage visibility yourself.
+
+```tsx closable-tags.tsx
+import React, { useState } from 'react';
+import { Space, Tag } from 'antd';
+
+const initial = ['React', 'TypeScript', 'Ant Design', 'Vite'];
+
+export default function ClosableTags() {
+  const [tags, setTags] = useState(initial);
+
+  const remove = (tag: string) => {
+    setTags((prev) => prev.filter((t) => t !== tag));
+  };
+
+  return (
+    <Space wrap>
+      {tags.map((tag) => (
+        <Tag key={tag} closable onClose={() => remove(tag)}>
+          {tag}
+        </Tag>
+      ))}
+    </Space>
+  );
+}
+```
+
+## Tags with icons
+
+Pass an `icon` prop with any React node (typically an icon from `@ant-design/icons`) to prepend it before the label.
+
+```tsx icon-tags.tsx
+import React from 'react';
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  SyncOutlined,
+} from '@ant-design/icons';
+import { Space, Tag } from 'antd';
+
+export default function IconTags() {
+  return (
+    <Space wrap>
+      <Tag icon={<CheckCircleOutlined />} color="success">
+        Completed
+      </Tag>
+      <Tag icon={<SyncOutlined spin />} color="processing">
+        Running
+      </Tag>
+      <Tag icon={<CloseCircleOutlined />} color="error">
+        Failed
+      </Tag>
+      <Tag icon={<ClockCircleOutlined />} color="warning">
+        Pending
+      </Tag>
+    </Space>
+  );
+}
+```
+
+## Checkable tags
+
+`Tag.CheckableTag` behaves like a toggle button. Use it for filter chips where users select one or more categories.
+
+```tsx checkable-tags.tsx
+import React, { useState } from 'react';
+import { Space, Tag } from 'antd';
+
+const categories = ['All', 'Design', 'Engineering', 'Product', 'Marketing'];
+
+export default function CheckableTags() {
+  const [selected, setSelected] = useState<string[]>(['All']);
+
+  const toggle = (tag: string, checked: boolean) => {
+    setSelected((prev) =>
+      checked ? [...prev, tag] : prev.filter((t) => t !== tag),
+    );
+  };
+
+  return (
+    <Space wrap>
+      {categories.map((cat) => (
+        <Tag.CheckableTag
+          key={cat}
+          checked={selected.includes(cat)}
+          onChange={(checked) => toggle(cat, checked)}
+        >
+          {cat}
+        </Tag.CheckableTag>
+      ))}
+    </Space>
+  );
+}
+```
+
+<Tip>
+  For a controlled group of checkable tags with a single selection or multiple selection mode, use `Tag.CheckableTagGroup` which manages checked state and exposes a single `onChange` callback.
+</Tip>
+
+## Variants
+
+Tags support three visual variants controlled by the `variant` prop:
+
+<CodeGroup>
+
+```tsx filled.tsx
+// Default – filled background with lighter shade
+<Tag variant="filled" color="blue">Filled</Tag>
+```
+
+```tsx outlined.tsx
+// Outlined – transparent background with coloured border
+<Tag variant="outlined" color="blue">Outlined</Tag>
+```
+
+```tsx solid.tsx
+// Solid – fully saturated background
+<Tag variant="solid" color="blue">Solid</Tag>
+```
+
+</CodeGroup>
+
+## Tag props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `color` | `string` | - | Preset name (`blue`, `green`, `success`, etc.) or any CSS colour |
+| `variant` | `"filled" \| "solid" \| "outlined"` | `"filled"` | Visual style variant (v6.0+) |
+| `icon` | `ReactNode` | - | Icon rendered before the label |
+| `closable` | `boolean` | `false` | Show a close button |
+| `closeIcon` | `ReactNode` | - | Custom close icon element |
+| `onClose` | `(e: MouseEvent) => void` | - | Fired when the close button is clicked |
+| `href` | `string` | - | Renders the tag as an `<a>` element (v6.0+) |
+| `target` | `string` | - | `target` attribute when `href` is set (v6.0+) |
+| `disabled` | `boolean` | `false` | Disable interactions (v6.0+) |
+| `classNames` | `TagClassNamesType` | - | Per-slot class name overrides |
+| `styles` | `TagStylesType` | - | Per-slot inline style overrides |
+
+## Tag.CheckableTag props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `checked` | `boolean` | `false` | Whether the tag is currently selected |
+| `onChange` | `(checked: boolean) => void` | - | Fired when the tag is toggled |
+| `icon` | `ReactNode` | - | Icon before the label (v5.27+) |
+
+## Tag.CheckableTagGroup props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `value` | `string \| number \| Array<string \| number> \| null` | - | Controlled checked value(s) |
+| `defaultValue` | `string \| number \| Array<string \| number> \| null` | - | Initial value (uncontrolled) |
+| `multiple` | `boolean` | `false` | Allow multiple tags to be checked |
+| `disabled` | `boolean` | `false` | Disable all tags in the group |
+| `options` | `Array<{ label, value } \| string \| number>` | - | Tag options to render |
+| `onChange` | `(value) => void` | - | Fired when checked state changes |
+
+<Warning>
+  The `bordered` prop is deprecated. Use `variant="filled"` for a tag without a strong border or `variant="outlined"` to show a border. Using `bordered={false}` will show a deprecation warning.
+</Warning>

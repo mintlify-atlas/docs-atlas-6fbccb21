@@ -1,0 +1,136 @@
+---
+title: "Using Ant Design with Vite: Complete Setup Guide"
+description: "Learn how to scaffold a Vite React project, install antd, and render your first Ant Design component with zero additional configuration required."
+---
+
+Vite is one of the fastest React application development tools available today, offering near-instant dev server startup and hot module replacement. This guide walks you through creating a new Vite project from scratch and integrating Ant Design's component library so you can start building production-ready UIs immediately.
+
+## Prerequisites
+
+Before starting, ensure you have Node.js installed. You may also want to install [yarn](https://github.com/yarnpkg/yarn/), [pnpm](https://pnpm.io/), or [bun](https://bun.sh/) as alternatives to npm.
+
+## Setup
+
+<Steps>
+  <Step title="Create a new Vite project">
+    Scaffold a new Vite + React project using your preferred package manager. The tool automatically creates the project structure and installs initial dependencies.
+
+    <CodeGroup>
+
+    ```bash npm
+    npm create vite antd-demo
+    ```
+
+    ```bash yarn
+    yarn create vite antd-demo
+    ```
+
+    ```bash pnpm
+    pnpm create vite antd-demo
+    ```
+
+    ```bash bun
+    bun create vite antd-demo
+    ```
+
+    </CodeGroup>
+
+    <Note>
+      If you encounter network errors during initialization, try configuring your proxy settings or switching to a different npm registry.
+    </Note>
+  </Step>
+
+  <Step title="Start the development server">
+    Navigate into the project directory, install dependencies, and start the dev server.
+
+    ```bash
+    cd antd-demo
+    npm install
+    npm run dev
+    ```
+
+    Open your browser at `http://localhost:5173/`. You should see a page with the `Vite + React` heading, confirming the project is running correctly.
+  </Step>
+
+  <Step title="Review the project structure">
+    The scaffolded project has the following layout:
+
+    ```
+    ├── public
+    │   └── vite.svg
+    ├── src
+    │   └── assets
+    │       └── react.svg
+    │   ├── App.css
+    │   ├── App.js
+    │   ├── index.css
+    │   ├── main.js
+    │   └── logo.svg
+    ├── index.html
+    ├── package.json
+    └── vite.config.ts
+    ```
+  </Step>
+
+  <Step title="Install Ant Design">
+    Add `antd` as a dependency to your project.
+
+    <CodeGroup>
+
+    ```bash npm
+    npm install antd --save
+    ```
+
+    ```bash yarn
+    yarn add antd
+    ```
+
+    ```bash pnpm
+    pnpm install antd --save
+    ```
+
+    ```bash bun
+    bun add antd
+    ```
+
+    </CodeGroup>
+  </Step>
+
+  <Step title="Use an antd component">
+    Modify `src/App.js` to import and render an Ant Design component. Ant Design handles all CSS-in-JS styling automatically — no stylesheet imports are required.
+
+    ```jsx
+    import React from 'react';
+    import { Button } from 'antd';
+
+    const App = () => (
+      <div className="App">
+        <Button type="primary">Button</Button>
+      </div>
+    );
+
+    export default App;
+    ```
+
+    Save the file. The dev server will hot-reload and you should see a blue primary button on the page.
+  </Step>
+</Steps>
+
+## What's next
+
+You now have a working Ant Design + Vite setup. Ant Design provides over 60 components covering forms, data display, navigation, feedback, and more — all tree-shakeable so only the components you use are included in your bundle.
+
+<CardGroup cols={2}>
+  <Card title="Use with Next.js" icon="arrow-right" href="/frameworks/use-with-next">
+    Integrate antd with Next.js App Router or Pages Router, including SSR style extraction to prevent flicker.
+  </Card>
+  <Card title="Use with Umi" icon="arrow-right" href="/frameworks/use-with-umi">
+    Build a full enterprise application using Umi's integrated routing, data fetching, and ProLayout.
+  </Card>
+  <Card title="Use with Rsbuild" icon="arrow-right" href="/frameworks/use-with-rsbuild">
+    Set up antd with Rsbuild, the Rspack-powered build tool, and customize your theme with ConfigProvider.
+  </Card>
+  <Card title="Vite user guide" icon="book" href="https://vitejs.dev/">
+    Explore Vite's full feature set including plugins, environment variables, and build optimization.
+  </Card>
+</CardGroup>

@@ -1,0 +1,167 @@
+---
+title: Anchor — Ant Design In-Page Scroll Navigation Links
+description: "Create sticky in-page navigation with Ant Design Anchor. Covers vertical and horizontal modes, scroll offset, nested links, and history replace."
+---
+
+`Anchor` renders a list of hyperlinks that scroll the page to named sections as users click them. The active link is automatically highlighted as the user scrolls. Use `Anchor` for long documentation pages, settings panels with multiple sections, or any single-page layout where you want to help users jump directly to a section. It is typically placed in a sticky sidebar next to the main content.
+
+<Note>
+  Since v4.24.0 Anchor is implemented as a functional component. Methods accessed via `ref` from older class-based usage are no longer available.
+</Note>
+
+## Basic usage
+
+Place target `id` anchors in the page content, then configure `Anchor` to reference them:
+
+```tsx
+import React from 'react';
+import { Anchor, Col, Row } from 'antd';
+
+export default function App() {
+  return (
+    <Row>
+      <Col span={18}>
+        <div id="section-1" style={{ height: '100vh', paddingTop: 64 }}>
+          <h2>Section 1</h2>
+          <p>Content for section one.</p>
+        </div>
+        <div id="section-2" style={{ height: '100vh', paddingTop: 64 }}>
+          <h2>Section 2</h2>
+          <p>Content for section two.</p>
+        </div>
+        <div id="section-3" style={{ height: '100vh', paddingTop: 64 }}>
+          <h2>Section 3</h2>
+          <p>Content for section three.</p>
+        </div>
+      </Col>
+
+      <Col span={6}>
+        <Anchor
+          items={[
+            { key: 'section-1', href: '#section-1', title: 'Section 1' },
+            { key: 'section-2', href: '#section-2', title: 'Section 2' },
+            { key: 'section-3', href: '#section-3', title: 'Section 3' },
+          ]}
+        />
+      </Col>
+    </Row>
+  );
+}
+```
+
+## Nested links
+
+`children` on an `AnchorItem` creates indented sub-links, useful for sections with multiple subsections:
+
+```tsx
+<Anchor
+  items={[
+    {
+      key: 'overview',
+      href: '#overview',
+      title: 'Overview',
+      children: [
+        { key: 'intro', href: '#intro', title: 'Introduction' },
+        { key: 'usage', href: '#usage', title: 'Basic Usage' },
+      ],
+    },
+    {
+      key: 'api',
+      href: '#api',
+      title: 'API Reference',
+    },
+  ]}
+/>
+```
+
+<Warning>
+  Nested `children` are not supported when `direction="horizontal"`. Use a flat `items` list for horizontal anchors.
+</Warning>
+
+## Horizontal anchor
+
+```tsx
+<Anchor
+  direction="horizontal"
+  items={[
+    { key: 'part-1', href: '#part-1', title: 'Part 1' },
+    { key: 'part-2', href: '#part-2', title: 'Part 2' },
+    { key: 'part-3', href: '#part-3', title: 'Part 3' },
+  ]}
+/>
+```
+
+Horizontal mode renders the links in a row rather than a vertical list, suited for top-of-page section tabs.
+
+## Static (non-fixed) anchor
+
+By default, `Anchor` uses `affix` mode and sticks to the top as the user scrolls. Set `affix={false}` to render it as a plain list without fixed positioning:
+
+```tsx
+<Anchor
+  affix={false}
+  items={[
+    { key: '1', href: '#section-1', title: 'Section 1' },
+    { key: '2', href: '#section-2', title: 'Section 2' },
+  ]}
+/>
+```
+
+## Scroll offset
+
+When you have a fixed header, offset the scroll position so that section headings are not hidden behind it:
+
+```tsx
+<Anchor
+  offsetTop={64}       // matches fixed header height
+  targetOffset={64}    // offset used when calculating which link is active
+  items={items}
+/>
+```
+
+<Tip>
+  `offsetTop` controls where the affixed anchor stops relative to the viewport top. `targetOffset` controls the threshold used when determining which anchor link is currently active while scrolling.
+</Tip>
+
+## Custom scroll container
+
+By default, `Anchor` listens to the window scroll. Pass `getContainer` to scope it to a scrolling element:
+
+```tsx
+<Anchor
+  getContainer={() => document.getElementById('scrollable-panel')!}
+  items={items}
+/>
+```
+
+## Anchor props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `items` | Array of anchor link configs | `AnchorItem[]` | — |
+| `direction` | Orientation of the link list | `'vertical' \| 'horizontal'` | `'vertical'` |
+| `affix` | Use `Affix` to keep the component fixed while scrolling | `boolean \| AffixProps` | `true` |
+| `offsetTop` | Top offset when in affix mode (px) | `number` | `0` |
+| `targetOffset` | Scroll offset for determining the active link | `number` | same as `offsetTop` |
+| `bounds` | Detection bounding area around target elements (px) | `number` | `5` |
+| `getContainer` | Scrolling container element | `() => HTMLElement` | `() => window` |
+| `getCurrentAnchor` | Override the active link highlight logic | `(activeLink: string) => string` | — |
+| `showInkInFixed` | Show the ink indicator when `affix={false}` | `boolean` | `false` |
+| `replace` | Replace URL history entries instead of pushing | `boolean` | `false` |
+| `onChange` | Fires when the active link changes | `(currentActiveLink: string) => void` | — |
+| `onClick` | Fires when a link is clicked | `(e: MouseEvent, link: object) => void` | — |
+
+## AnchorItem props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `key` | Unique identifier | `string \| number` | — |
+| `href` | Target anchor URL (e.g. `#section-id`) | `string` | — |
+| `title` | Link label | `ReactNode` | — |
+| `target` | Where to open the link (`_blank`, etc.) | `string` | — |
+| `children` | Nested anchor items (vertical mode only) | `AnchorItem[]` | — |
+| `replace` | Replace history entry instead of pushing | `boolean` | `false` |
+
+<Note>
+  Since v5.25.0 Anchor uses `history.pushState` / `replaceState` internally instead of setting `window.location.href`. This means the CSS `:target` pseudo-class on the destination element will not automatically update. If you rely on `:target` styling, construct the full URL: `href={window.location.origin + window.location.pathname + '#section-id'}`.
+</Note>

@@ -1,0 +1,183 @@
+---
+title: "Drawer: Slide-In Panel Component for Ant Design"
+description: "Render a panel that slides in from any edge of the screen, keeping users in context while they fill a form, review details, or complete a sub-task."
+---
+
+Drawer renders a panel that slides in from any edge of the viewport — right, left, top, or bottom — and overlays the current page without a full navigation change. It is well-suited for editing forms, previewing records, handling sub-tasks, and any scenario where the user needs additional space without leaving their current context.
+
+<Tip>
+  Use `placement="right"` (the default) for forms and detail panels. Use `placement="bottom"` for mobile-friendly sheets. For actions that are too complex for a `Popover` but do not warrant a full page, a Drawer keeps the user oriented.
+</Tip>
+
+## Basic usage
+
+Control visibility with the `open` prop. Always provide an `onClose` handler to set `open` to `false`.
+
+```tsx drawer-basic.tsx
+import React, { useState } from 'react';
+import { Button, Drawer } from 'antd';
+
+export default function BasicDrawer() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button type="primary" onClick={() => setOpen(true)}>
+        Open drawer
+      </Button>
+      <Drawer
+        title="Panel title"
+        open={open}
+        onClose={() => setOpen(false)}
+      >
+        <p>Drawer content goes here.</p>
+      </Drawer>
+    </>
+  );
+}
+```
+
+## Placement
+
+Pass `placement` to control which edge the drawer slides in from.
+
+<Tabs>
+  <Tab title="Right (default)">
+    ```tsx drawer-right.tsx
+    <Drawer title="Right drawer" placement="right" open={open} onClose={() => setOpen(false)}>
+      <p>Content</p>
+    </Drawer>
+    ```
+  </Tab>
+  <Tab title="Left">
+    ```tsx drawer-left.tsx
+    <Drawer title="Left drawer" placement="left" open={open} onClose={() => setOpen(false)}>
+      <p>Content</p>
+    </Drawer>
+    ```
+  </Tab>
+  <Tab title="Top">
+    ```tsx drawer-top.tsx
+    <Drawer title="Top drawer" placement="top" open={open} onClose={() => setOpen(false)}>
+      <p>Content</p>
+    </Drawer>
+    ```
+  </Tab>
+  <Tab title="Bottom">
+    ```tsx drawer-bottom.tsx
+    <Drawer title="Bottom drawer" placement="bottom" open={open} onClose={() => setOpen(false)}>
+      <p>Content</p>
+    </Drawer>
+    ```
+  </Tab>
+</Tabs>
+
+## Form inside a drawer
+
+A common pattern is to embed a form in the drawer and submit it via the footer's action buttons.
+
+```tsx drawer-form.tsx
+import React, { useState } from 'react';
+import { Button, Drawer, Form, Input, Space } from 'antd';
+
+export default function FormDrawer() {
+  const [open, setOpen] = useState(false);
+  const [form] = Form.useForm();
+
+  const onFinish = (values: Record<string, string>) => {
+    console.log(values);
+    setOpen(false);
+    form.resetFields();
+  };
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>New record</Button>
+      <Drawer
+        title="Create record"
+        placement="right"
+        open={open}
+        onClose={() => setOpen(false)}
+        extra={
+          <Space>
+            <Button onClick={() => setOpen(false)}>Cancel</Button>
+            <Button type="primary" onClick={() => form.submit()}>
+              Save
+            </Button>
+          </Space>
+        }
+      >
+        <Form form={form} layout="vertical" onFinish={onFinish}>
+          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="email" label="Email" rules={[{ type: 'email' }]}>
+            <Input />
+          </Form.Item>
+        </Form>
+      </Drawer>
+    </>
+  );
+}
+```
+
+## Sizes
+
+Use the `size` prop for preset widths, or pass a number for a custom size.
+
+```tsx drawer-sizes.tsx
+import React, { useState } from 'react';
+import { Button, Drawer, Space } from 'antd';
+
+export default function DrawerSizes() {
+  const [size, setSize] = useState<'default' | 'large'>('default');
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Space>
+        <Button onClick={() => { setSize('default'); setOpen(true); }}>Default (378px)</Button>
+        <Button onClick={() => { setSize('large'); setOpen(true); }}>Large (736px)</Button>
+      </Space>
+      <Drawer title={`${size} drawer`} size={size} open={open} onClose={() => setOpen(false)}>
+        <p>Content</p>
+      </Drawer>
+    </>
+  );
+}
+```
+
+## Props
+
+| Prop | Description | Type | Default |
+|---|---|---|---|
+| `open` | Whether the drawer is visible | `boolean` | `false` |
+| `onClose` | Close handler (mask click, close button, Esc key) | `(e: Event) => void` | — |
+| `placement` | Which edge the drawer slides in from | `'right' \| 'left' \| 'top' \| 'bottom'` | `'right'` |
+| `title` | Drawer header title | `ReactNode` | — |
+| `size` | Preset size or custom pixel value | `'default' \| 'large' \| number \| string` | `'default'` |
+| `extra` | Extra content in the header corner (typically action buttons) | `ReactNode` | — |
+| `footer` | Drawer footer content | `ReactNode` | — |
+| `closable` | Show the close button; accepts a config object to customize icon and position | `boolean \| ClosableConfig` | `true` |
+| `mask` | Backdrop settings | `boolean \| { enabled?, blur?, closable? }` | `true` |
+| `keyboard` | Close on Esc key | `boolean` | `true` |
+| `destroyOnHidden` | Unmount children when the drawer is closed | `boolean` | `false` |
+| `loading` | Show a skeleton loading state | `boolean` | `false` |
+| `forceRender` | Pre-render content before the drawer opens | `boolean` | `false` |
+| `push` | Nested drawer push distance | `boolean \| { distance: string \| number }` | `{ distance: 180 }` |
+| `resizable` | Enable drag-to-resize handle | `boolean \| ResizableConfig` | — |
+| `zIndex` | CSS `z-index` | `number` | `1000` |
+| `getContainer` | Mount target element | `HTMLElement \| () => HTMLElement \| false` | `document.body` |
+| `afterOpenChange` | Called after the open/close animation completes | `(open: boolean) => void` | — |
+| `style` | Inline style for the drawer panel | `CSSProperties` | — |
+| `rootStyle` | Inline style for the wrapper element (includes mask) | `CSSProperties` | — |
+| `classNames` | Per-slot class name overrides | `Record<SemanticDOM, string>` | — |
+| `styles` | Per-slot inline style overrides | `Record<SemanticDOM, CSSProperties>` | — |
+
+<Note>
+  When you nest drawers, the parent drawer automatically slides aside by `180px` (configurable via `push`). If you need the nested drawer to open on top without pushing, set `push={false}` on the parent.
+</Note>
+
+<Warning>
+  `destroyOnHidden` unmounts the drawer's children every time it closes. Avoid it when the children manage expensive state or subscriptions that should persist between open/close cycles.
+</Warning>

@@ -1,0 +1,240 @@
+---
+title: "Frequently Asked Questions (FAQ) About Ant Design"
+description: "Answers to common antd questions covering controlled components, SSR conflicts, popup positioning, theming, date locale, and Next.js App Router errors."
+---
+
+Before raising an issue or posting in the community, check whether your question is answered here. Ant Design also maintains a [FAQ issues label](http://u.ant.design/faq) on GitHub for questions that come with runnable reproductions.
+
+<AccordionGroup>
+
+  <Accordion title="Is there a difference between undefined and null in antd controlled components?">
+    **Yes.** antd treats `undefined` as **uncontrolled** and `null` as a **controlled empty value**.
+
+    React itself treats both `undefined` and `null` as uncontrolled. When `value` changes from a valid value to either, the component ceases to be controlled and can behave unexpectedly. antd departs from this by treating `null` as an explicit empty value, which makes it safe to clear a controlled field (for example with `allowClear`).
+
+    ```tsx
+    // Set a controlled field to empty — use null, not undefined
+    form.setFieldsValue({ username: null });
+    ```
+
+    For `options` in Select-like components, avoid using `undefined` or `null` as an option `value`. Use `string | number` instead.
+  </Accordion>
+
+  <Accordion title="How do I stop Select, Dropdown, DatePicker, or Popover from scrolling with the page?">
+    Use `getPopupContainer` to render the overlay inside the nearest scrolling ancestor:
+
+    ```tsx
+    // Per-component
+    <Select getPopupContainer={(trigger) => trigger.parentElement}>
+      ...
+    </Select>
+
+    // Application-wide via ConfigProvider
+    <ConfigProvider getPopupContainer={(trigger) => trigger.parentElement}>
+      <App />
+    </ConfigProvider>
+    ```
+
+    Make sure the parent element has `position: relative` or `position: absolute` set.
+
+    Related issues: [#3487](https://github.com/ant-design/ant-design/issues/3487), [#3438](https://github.com/ant-design/ant-design/issues/3438)
+  </Accordion>
+
+  <Accordion title="message/notification/Modal.confirm lose theme styles when I set prefixCls or a custom theme">
+    Static methods (`message`, `notification`, `Modal.confirm`) are rendered into a **separate DOM tree** via `ReactDOM.render` and cannot read React context from your `ConfigProvider`. There are two solutions:
+
+    **Option 1 — use hook-based APIs:**
+
+    ```tsx
+    const [messageApi, contextHolder] = message.useMessage();
+    const [notificationApi, contextHolder] = notification.useNotification();
+    const [modalApi, contextHolder] = Modal.useModal();
+    ```
+
+    **Option 2 — use App.useApp:**
+
+    ```tsx
+    import { App } from 'antd';
+
+    function MyComponent() {
+      const { message, notification, modal } = App.useApp();
+      // These instances inherit ConfigProvider context
+    }
+    ```
+
+    Wrap your application root with `<App>` when using option 2.
+  </Accordion>
+
+  <Accordion title="The antd component reported an error when using the App Router of Next.js">
+    If you use sub-components such as `Select.Option`, `Form.Item`, or `Typography.Title` in a Next.js App Router server component, you may see:
+
+    ```bash
+    Error: Cannot access .Option on the server. You cannot dot into a client module
+    from a server component. You can only pass the imported name through.
+    ```
+
+    There are two workarounds:
+
+    **Option 1 — create a client wrapper:**
+
+    ```tsx
+    'use client';
+
+    import React from 'react';
+    import { Typography as OriginTypography } from 'antd';
+    import type { TitleProps } from 'antd/es/typography/Title';
+
+    const Title = React.forwardRef<HTMLElement, TitleProps & React.RefAttributes<HTMLElement>>(
+      (props, ref) => <OriginTypography.Title ref={ref} {...props} />,
+    );
+
+    export { Title };
+    ```
+
+    **Option 2 — mark the page as a client component:**
+
+    ```tsx
+    'use client';
+
+    export default function Page() {
+      return (
+        <Form>
+          <Form.Item>
+            <Button type="primary">Submit</Button>
+          </Form.Item>
+        </Form>
+      );
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="How do I support SSR?">
+    See the dedicated [Server-Side Rendering](/advanced/server-side-rendering) guide. It covers both inline style extraction with `@ant-design/cssinjs` and static CSS file pre-baking with `@ant-design/static-style-extract`.
+  </Accordion>
+
+  <Accordion title="How do I change the default theme of Ant Design?">
+    Pass `theme.token` to `ConfigProvider`. For example, to change the primary color:
+
+    ```tsx
+    import { ConfigProvider } from 'antd';
+
+    <ConfigProvider theme={{ token: { colorPrimary: '#722ed1' } }}>
+      <App />
+    </ConfigProvider>
+    ```
+
+    See [Design Tokens](/resources/design-tokens) for a full list of available seed tokens.
+  </Accordion>
+
+  <Accordion title="How do I disable all animations and motion effects?">
+    Set the `motion` seed token to `false` via `ConfigProvider`:
+
+    ```tsx
+    import { ConfigProvider } from 'antd';
+
+    <ConfigProvider theme={{ token: { motion: false } }}>
+      <App />
+    </ConfigProvider>
+    ```
+  </Accordion>
+
+  <Accordion title="Date-related component locale is not working">
+    First, verify you are importing and activating the Day.js locale:
+
+    ```jsx
+    import dayjs from 'dayjs';
+    import 'dayjs/locale/zh-cn';
+
+    dayjs.locale('zh-cn');
+    ```
+
+    Then check whether you have multiple versions of Day.js installed:
+
+    ```bash
+    npm ls dayjs
+    ```
+
+    If there are two versions, antd and your application code may be using different instances, which prevents the locale activation from taking effect. Resolve the version conflict in your `package.json` or with a `resolutions` / `overrides` field.
+  </Accordion>
+
+  <Accordion title="Why doesn't setting mode on DatePicker/RangePicker let me pick a year or month?">
+    The `mode` prop controls **which panel is displayed**, not which granularity is selectable. `<DatePicker mode="year" />` is not a `YearPicker` — you still need to click a date cell to complete selection.
+
+    Use dedicated picker variants instead: `DatePicker.generatePicker` supports `picker="year"`, `picker="month"`, `picker="week"`, and `picker="quarter"` since antd 4.
+
+    ```tsx
+    <DatePicker picker="year" />
+    <DatePicker picker="month" />
+    <RangePicker picker="month" />
+    ```
+  </Accordion>
+
+  <Accordion title="CSS-in-JS priority conflicts with Tailwind CSS">
+    antd CSS-in-JS uses `:where()` selectors which have zero specificity by default. Tailwind utility classes can override antd styles in some cases. Raise antd's priority by enabling `hashPriority="high"` on `StyleProvider`:
+
+    ```tsx
+    import { StyleProvider } from '@ant-design/cssinjs';
+
+    <StyleProvider hashPriority="high">
+      <App />
+    </StyleProvider>
+    ```
+
+    Related issue: [#38794](https://github.com/ant-design/ant-design/issues/38794)
+  </Accordion>
+
+  <Accordion title="How do I get TypeScript types for unexported props?">
+    Use the utility types antd exposes:
+
+    ```tsx
+    import type { Checkbox, CheckboxProps, GetProp, GetProps, GetRef, Input } from 'antd';
+
+    // Get Props of a compound component
+    type CheckboxGroupProps = GetProps<typeof Checkbox.Group>;
+
+    // Get a single Prop type
+    type CheckboxValue = GetProp<CheckboxProps, 'value'>;
+
+    // Get the Ref type
+    type InputRef = GetRef<typeof Input>;
+    ```
+  </Accordion>
+
+  <Accordion title="Form setFieldsValue reports a TypeScript error when value contains null">
+    This happens when `strictNullChecks` is enabled in `tsconfig.json`. antd's form field types use `T | undefined` and do not accept `null` directly.
+
+    If you need to set a field to an empty controlled value, either disable `strictNullChecks` or redefine the type to use `undefined` instead of `null`:
+
+    ```json
+    {
+      "compilerOptions": {
+        "strictNullChecks": false
+      }
+    }
+    ```
+
+    Alternatively, keep `strictNullChecks` enabled and use `undefined` as the empty signal for uncontrolled fields.
+  </Accordion>
+
+  <Accordion title="Why does modifying props in a mutable way not trigger a component update?">
+    antd (like React itself) uses shallow comparison of props and state for performance. Always create a **new object** when updating state or passing new props:
+
+    ```tsx
+    // Wrong — mutates existing object, no re-render
+    dataSource.push(newItem);
+    setDataSource(dataSource);
+
+    // Correct — creates a new array reference
+    setDataSource([...dataSource, newItem]);
+    ```
+  </Accordion>
+
+  <Accordion title="How do I use another date library such as Moment.js with antd?">
+    See the [Use custom date library](/advanced/use-custom-date-library) guide. It covers Moment.js (with wrapper components or the Webpack plugin), date-fns, and luxon.
+  </Accordion>
+
+  <Accordion title="Does antd work well on mobile?">
+    antd is optimised for desktop enterprise applications and is not designed for mobile. For mobile use cases, consider [Ant Design Mobile](http://mobile.ant.design) or the `m-` and `rn-` prefixed packages in the [react-component](https://github.com/react-component/) organisation.
+  </Accordion>
+
+</AccordionGroup>

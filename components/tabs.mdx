@@ -1,0 +1,170 @@
+---
+title: Tabs — Ant Design Tabbed Panel Switcher for React
+description: "Organise content into switchable panels with Ant Design Tabs. Covers line, card, and editable-card types, tab placement, and lazy rendering."
+---
+
+`Tabs` organises content into a set of panels where only one panel is visible at a time. Users switch between panels by clicking a tab label. Use `Tabs` for settings screens with multiple sections, dashboards with different views, or any interface where you want to reduce visual complexity by grouping related content. Ant Design provides three built-in tab styles: `line` (default), `card`, and `editable-card`.
+
+## Basic usage
+
+```tsx
+import React from 'react';
+import type { TabsProps } from 'antd';
+import { Tabs } from 'antd';
+
+const items: TabsProps['items'] = [
+  {
+    key: '1',
+    label: 'Tab 1',
+    children: 'Content of Tab Pane 1',
+  },
+  {
+    key: '2',
+    label: 'Tab 2',
+    children: 'Content of Tab Pane 2',
+  },
+  {
+    key: '3',
+    label: 'Tab 3',
+    children: 'Content of Tab Pane 3',
+    disabled: true,
+  },
+];
+
+export default function App() {
+  return (
+    <Tabs
+      defaultActiveKey="1"
+      items={items}
+      onChange={(key) => console.log('Active tab:', key)}
+    />
+  );
+}
+```
+
+## Tab types
+
+<Tabs>
+  <Tab title="Line (default)">
+    ```tsx
+    <Tabs type="line" items={items} />
+    ```
+    Underline indicator slides beneath the active tab. Best for functional page sections.
+  </Tab>
+  <Tab title="Card">
+    ```tsx
+    <Tabs type="card" items={items} />
+    ```
+    Each tab renders as a raised card. Suitable for document-like interfaces where the tab represents a view.
+  </Tab>
+  <Tab title="Editable card">
+    ```tsx
+    import React, { useState } from 'react';
+    import { Tabs } from 'antd';
+
+    const initialItems = [
+      { label: 'Tab 1', children: 'Content 1', key: '1' },
+      { label: 'Tab 2', children: 'Content 2', key: '2' },
+    ];
+
+    export default function App() {
+      const [items, setItems] = useState(initialItems);
+      const [activeKey, setActiveKey] = useState('1');
+
+      const onEdit = (targetKey: string, action: 'add' | 'remove') => {
+        if (action === 'add') {
+          const newKey = String(Date.now());
+          setItems([...items, { label: `New Tab`, children: 'New content', key: newKey }]);
+          setActiveKey(newKey);
+        } else {
+          setItems(items.filter((item) => item.key !== targetKey));
+        }
+      };
+
+      return (
+        <Tabs
+          type="editable-card"
+          activeKey={activeKey}
+          items={items}
+          onChange={setActiveKey}
+          onEdit={onEdit}
+        />
+      );
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Placement
+
+Tabs can be placed on any edge of the content panel:
+
+```tsx
+<Tabs tabPlacement="top"    items={items} />   {/* default */}
+<Tabs tabPlacement="bottom" items={items} />
+<Tabs tabPlacement="start"  items={items} />   {/* left in LTR, right in RTL */}
+<Tabs tabPlacement="end"    items={items} />   {/* right in LTR, left in RTL */}
+```
+
+<Tip>
+  Use `tabPlacement="start"` or `tabPlacement="end"` instead of the deprecated `tabPosition="left"` / `tabPosition="right"` for RTL-aware layouts.
+</Tip>
+
+## Extra tab bar content
+
+Render additional controls inside the tab bar without disrupting the tab layout:
+
+```tsx
+const operations = <Button>Extra Action</Button>;
+
+<Tabs
+  tabBarExtraContent={{ right: operations }}
+  items={items}
+/>
+```
+
+## Tabs props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `items` | Tab configuration array | `TabItemType[]` | `[]` |
+| `activeKey` | Key of the active tab (controlled) | `string` | — |
+| `defaultActiveKey` | Initial active tab key | `string` | first tab's key |
+| `type` | Tab style | `'line' \| 'card' \| 'editable-card'` | `'line'` |
+| `size` | Tab bar size | `'large' \| 'medium' \| 'small'` | `'medium'` |
+| `tabPlacement` | Position of the tab bar | `'top' \| 'bottom' \| 'start' \| 'end'` | `'top'` |
+| `centered` | Center the tab labels | `boolean` | `false` |
+| `animated` | Animate ink bar and/or tab pane transitions | `boolean \| { inkBar, tabPane }` | `{ inkBar: true, tabPane: false }` |
+| `destroyOnHidden` | Unmount inactive tab panels | `boolean` | `false` |
+| `tabBarExtraContent` | Extra content in the tab bar | `ReactNode \| { left?, right? }` | — |
+| `tabBarGutter` | Gap between tab labels (px) | `number` | — |
+| `tabBarStyle` | Inline style for the tab bar | `CSSProperties` | — |
+| `indicator` | Customize indicator size and alignment | `{ size?, align }` | — |
+| `hideAdd` | Hide the add button (`editable-card` only) | `boolean` | `false` |
+| `addIcon` | Custom add icon (`editable-card` only) | `ReactNode` | `<PlusOutlined />` |
+| `removeIcon` | Custom remove icon (`editable-card` only) | `ReactNode` | `<CloseOutlined />` |
+| `onChange` | Fires when the active tab changes | `(activeKey: string) => void` | — |
+| `onEdit` | Fires when a tab is added or removed | `(targetKey, action) => void` | — |
+| `onTabClick` | Fires when a tab is clicked | `(key, event) => void` | — |
+
+## TabItemType props
+
+| Prop | Description | Type | Default |
+|------|-------------|------|---------|
+| `key` | Unique identifier | `string` | — |
+| `label` | Tab header label | `ReactNode` | — |
+| `icon` | Tab header icon | `ReactNode` | — |
+| `children` | Panel content | `ReactNode` | — |
+| `disabled` | Disable this tab | `boolean` | `false` |
+| `closable` | Show close button (`editable-card` only) | `boolean` | `true` |
+| `closeIcon` | Custom close icon (`editable-card` only) | `ReactNode` | — |
+| `forceRender` | Eagerly render panel content, not lazily | `boolean` | `false` |
+| `destroyOnHidden` | Unmount this panel when hidden | `boolean` | `false` |
+
+<Note>
+  By default, tab panel content is lazily rendered the first time a tab is activated and then kept mounted. Set `destroyOnHidden` on the `<Tabs>` or on individual items to unmount hidden panels and free memory — useful when panels contain heavy components or large data sets.
+</Note>
+
+<Warning>
+  `tabPosition` is deprecated. Use `tabPlacement` instead. `destroyInactiveTabPane` is also deprecated — replace it with `destroyOnHidden`.
+</Warning>

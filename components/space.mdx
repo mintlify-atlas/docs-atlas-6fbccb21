@@ -1,0 +1,180 @@
+---
+title: "Space: Ant Design Inline Spacing Component"
+description: "Add consistent spacing between inline elements with Ant Design Space — horizontal and vertical gaps, size presets, wrapping, separators, and compact mode."
+---
+
+`Space` wraps each of its children in a container element and applies consistent spacing between them. It is designed for inline elements — button groups, tags, icons with labels — where you need equal gaps without affecting the layout flow. For block-level layout and more flexible control, use `Flex` instead.
+
+<Tip>
+**`Space` vs `Flex`:** `Space` adds a wrapper `<span>` around each child and is ideal for equidistant inline arrangements. `Flex` operates on children directly and is better for block-level or asymmetric layouts.
+</Tip>
+
+## Basic usage
+
+```tsx basic-space.tsx
+import React from 'react';
+import { Button, Space } from 'antd';
+
+const App: React.FC = () => (
+  <Space>
+    <Button type="primary">Save</Button>
+    <Button>Cancel</Button>
+    <Button type="dashed">Reset</Button>
+  </Space>
+);
+
+export default App;
+```
+
+## Size presets
+
+`size` accepts `"small"` (8 px), `"middle"` (16 px), `"large"` (24 px), or a custom number in pixels:
+
+```tsx space-sizes.tsx
+import React from 'react';
+import { Button, Flex, Space } from 'antd';
+
+const Demo: React.FC<{ size: any; label: string }> = ({ size, label }) => (
+  <div>
+    <p>{label}</p>
+    <Space size={size}>
+      <Button>One</Button>
+      <Button>Two</Button>
+      <Button>Three</Button>
+    </Space>
+  </div>
+);
+
+const App: React.FC = () => (
+  <Flex vertical gap="middle">
+    <Demo size="small" label="small (8px)" />
+    <Demo size="middle" label="middle (16px)" />
+    <Demo size="large" label="large (24px)" />
+    <Demo size={40} label="custom (40px)" />
+  </Flex>
+);
+
+export default App;
+```
+
+## Vertical spacing
+
+Set `vertical` (or `orientation="vertical"`) to stack children in a column:
+
+```tsx vertical-space.tsx
+import React from 'react';
+import { Card, Space } from 'antd';
+
+const App: React.FC = () => (
+  <Space vertical>
+    <Card size="small" title="Card 1">Body</Card>
+    <Card size="small" title="Card 2">Body</Card>
+    <Card size="small" title="Card 3">Body</Card>
+  </Space>
+);
+
+export default App;
+```
+
+## Wrapping
+
+Set `wrap` to allow items to flow onto the next line when the container is full:
+
+```tsx space-wrap.tsx
+import React from 'react';
+import { Button, Space } from 'antd';
+
+const App: React.FC = () => (
+  <Space wrap style={{ maxWidth: 320 }}>
+    {Array.from({ length: 8 }).map((_, i) => (
+      <Button key={i}>Button {i + 1}</Button>
+    ))}
+  </Space>
+);
+
+export default App;
+```
+
+## Separator
+
+Use `separator` to place a custom divider between children:
+
+```tsx space-separator.tsx
+import React from 'react';
+import { Divider, Space, Typography } from 'antd';
+
+const { Link } = Typography;
+
+const App: React.FC = () => (
+  <Space separator={<Divider type="vertical" />}>
+    <Link href="#">Home</Link>
+    <Link href="#">About</Link>
+    <Link href="#">Contact</Link>
+  </Space>
+);
+
+export default App;
+```
+
+## Compact mode
+
+`Space.Compact` collapses borders between adjacent supported components so they appear as a single connected control. Supported components include `Button`, `Input`, `Select`, `DatePicker`, and more.
+
+```tsx compact-mode.tsx
+import React from 'react';
+import { Button, Input, Space } from 'antd';
+
+const App: React.FC = () => (
+  <>
+    {/* Compact buttons */}
+    <Space.Compact>
+      <Button>Copy</Button>
+      <Button>Paste</Button>
+      <Button type="primary">Submit</Button>
+    </Space.Compact>
+
+    {/* Compact input + button */}
+    <Space.Compact style={{ marginTop: 8 }}>
+      <Input placeholder="Enter URL" style={{ width: 240 }} />
+      <Button type="primary">Go</Button>
+    </Space.Compact>
+
+    {/* Vertical compact */}
+    <Space.Compact orientation="vertical" style={{ marginTop: 8 }}>
+      <Button>Top</Button>
+      <Button>Middle</Button>
+      <Button>Bottom</Button>
+    </Space.Compact>
+  </>
+);
+
+export default App;
+```
+
+## API
+
+### Space
+
+| Property | Description | Type | Default |
+|----------|-------------|------|---------|
+| `size` | Gap between each child | `small` \| `middle` \| `large` \| `number` \| `[horizontal, vertical]` | `small` |
+| `orientation` | Direction of the space | `horizontal` \| `vertical` | `horizontal` |
+| `vertical` | Shorthand for `orientation="vertical"` (takes priority over `orientation`) | boolean | `false` |
+| `align` | Vertical alignment of children | `start` \| `end` \| `center` \| `baseline` | - |
+| `wrap` | Allow children to wrap to the next line | boolean | `false` |
+| `separator` | Custom separator element between children | ReactNode | - |
+| `classNames` | Custom class names for semantic DOM slots | `Record<SemanticDOM, string>` \| function | - |
+| `styles` | Custom inline styles for semantic DOM slots | `Record<SemanticDOM, CSSProperties>` \| function | - |
+
+### Space.Compact
+
+| Property | Description | Type | Default |
+|----------|-------------|------|---------|
+| `orientation` | Direction of the compact layout | `horizontal` \| `vertical` | `horizontal` |
+| `vertical` | Shorthand for vertical orientation (takes priority over `orientation`) | boolean | `false` |
+| `size` | Size applied to all child components | `large` \| `middle` \| `small` | `middle` |
+| `block` | Stretch to fill parent width | boolean | `false` |
+
+<Note>
+`Space.Compact` supported components: `Button`, `AutoComplete`, `Cascader`, `DatePicker`, `Input`, `Input.Search`, `InputNumber`, `Select`, `TimePicker`, `TreeSelect`.
+</Note>

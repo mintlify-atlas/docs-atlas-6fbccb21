@@ -1,0 +1,183 @@
+---
+title: "Icon: Ant Design Semantic Vector Graphics Guide"
+description: "Add SVG icons to your React app with @ant-design/icons — Outlined, Filled, and TwoTone themes, custom SVGs, spin animation, and iconfont integration."
+---
+
+Ant Design icons are SVG-based semantic vector graphics provided by the separate `@ant-design/icons` package. Each icon is a standalone React component, which keeps bundle sizes small through tree-shaking. Icons come in three themes — Outlined, Filled, and TwoTone — and can be customized with size, color, spin animation, and rotation.
+
+## Installation
+
+Icons live in their own package, separate from `antd`:
+
+<Tabs>
+  <Tab title="npm">
+    ```bash
+    npm install @ant-design/icons@6.x --save
+    ```
+  </Tab>
+  <Tab title="yarn">
+    ```bash
+    yarn add @ant-design/icons@6.x
+    ```
+  </Tab>
+  <Tab title="pnpm">
+    ```bash
+    pnpm install @ant-design/icons@6.x --save
+    ```
+  </Tab>
+</Tabs>
+
+<Warning>
+Use `@ant-design/icons@6.x` with `antd@6.x`. The major versions must match — mixing v5 icons with v6 antd (or vice versa) can cause style issues.
+</Warning>
+
+## Basic usage
+
+Import each icon by its component name. The naming convention is `<IconName><Theme>` — for example, `StarOutlined`, `StarFilled`, `StarTwoTone`.
+
+```tsx basic-icons.tsx
+import React from 'react';
+import { StarOutlined, StarFilled, StarTwoTone } from '@ant-design/icons';
+import { Flex } from 'antd';
+
+const App: React.FC = () => (
+  <Flex gap="middle" align="center">
+    <StarOutlined />
+    <StarFilled />
+    <StarTwoTone twoToneColor="#eb2f96" />
+  </Flex>
+);
+
+export default App;
+```
+
+## Icon themes
+
+All icons come in three themes. Choose the suffix that matches your UI context:
+
+| Suffix | Theme | Example import |
+|--------|-------|----------------|
+| `Outlined` | Line/stroke style (default) | `HomeOutlined` |
+| `Filled` | Solid/filled style | `HomeFilled` |
+| `TwoTone` | Two-color with primary highlight | `HomeTwoTone` |
+
+## Sizing and coloring
+
+Icons inherit font size and color from their parent element. Override using inline `style`:
+
+```tsx icon-style.tsx
+import React from 'react';
+import { MessageOutlined, CheckCircleTwoTone } from '@ant-design/icons';
+import { Flex } from 'antd';
+
+const App: React.FC = () => (
+  <Flex gap="middle" align="center">
+    {/* Size via fontSize */}
+    <MessageOutlined style={{ fontSize: '24px' }} />
+
+    {/* Color via color */}
+    <MessageOutlined style={{ fontSize: '24px', color: '#1677ff' }} />
+
+    {/* Two-tone primary color */}
+    <CheckCircleTwoTone twoToneColor="#52c41a" style={{ fontSize: '24px' }} />
+  </Flex>
+);
+
+export default App;
+```
+
+## Spin and rotate
+
+Use `spin` for a rotation animation (useful for loading states) and `rotate` to set a fixed angle:
+
+```tsx icon-spin.tsx
+import React from 'react';
+import { LoadingOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { Flex } from 'antd';
+
+const App: React.FC = () => (
+  <Flex gap="middle" align="center">
+    <LoadingOutlined spin style={{ fontSize: 24 }} />
+    <ArrowRightOutlined rotate={45} style={{ fontSize: 24 }} />
+  </Flex>
+);
+
+export default App;
+```
+
+## Two-tone global color
+
+Set the global primary color for all TwoTone icons using the static helpers:
+
+```tsx two-tone-global.tsx
+import { getTwoToneColor, setTwoToneColor } from '@ant-design/icons';
+
+setTwoToneColor('#eb2f96');
+console.log(getTwoToneColor()); // '#eb2f96'
+```
+
+## Custom SVG icons
+
+### From a local SVG file (Vite)
+
+Use `vite-plugin-svgr` to import SVG files as React components, then wrap them with the `Icon` component:
+
+```tsx custom-svg.tsx
+import React from 'react';
+import Icon from '@ant-design/icons';
+// With vite-plugin-svgr, append ?react to the import path
+import MessageSvg from './message.svg?react';
+
+const App: React.FC = () => <Icon component={MessageSvg} style={{ fontSize: 24 }} />;
+
+export default App;
+```
+
+### From iconfont.cn
+
+Use `createFromIconfontCN` to load icons from your iconfont.cn project URL:
+
+```tsx iconfont.tsx
+import React from 'react';
+import { createFromIconfontCN } from '@ant-design/icons';
+
+const MyIcon = createFromIconfontCN({
+  scriptUrl: '//at.alicdn.com/t/font_8d5l8fzk5b87iudi.js',
+});
+
+const App: React.FC = () => <MyIcon type="icon-example" style={{ fontSize: 24 }} />;
+
+export default App;
+```
+
+## API
+
+### Common icon props
+
+| Property | Description | Type | Default |
+|----------|-------------|------|---------|
+| `style` | Inline styles — use `fontSize` for size, `color` for color | CSSProperties | - |
+| `className` | CSS class name | string | - |
+| `spin` | Rotate continuously with an animation | boolean | `false` |
+| `rotate` | Rotate the icon by N degrees | number | - |
+| `twoToneColor` | Primary color for TwoTone icons only | string (hex) | - |
+
+### Custom icon props (`<Icon component={...} />`)
+
+| Property | Description | Type | Default |
+|----------|-------------|------|---------|
+| `component` | The SVG component to render | `ComponentType<CustomIconComponentProps>` | - |
+| `spin` | Rotate continuously with an animation | boolean | `false` |
+| `rotate` | Rotate the icon by N degrees | number | - |
+| `style` | Inline styles | CSSProperties | - |
+
+### `createFromIconfontCN` options
+
+| Property | Description | Type | Default |
+|----------|-------------|------|---------|
+| `scriptUrl` | The script URL generated by your iconfont.cn project | `string` \| `string[]` | - |
+| `extraCommonProps` | Extra props applied to every icon | `{ [key: string]: any }` | `{}` |
+
+<Note>
+SVG icons render to `<svg>` elements, so all SVG-compatible CSS properties (like `fill`, `stroke`) apply. Sizing via `fontSize` works because the default SVG dimensions are `1em × 1em`.
+</Note>

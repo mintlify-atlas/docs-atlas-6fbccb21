@@ -1,0 +1,329 @@
+---
+title: "Customize Theme with Ant Design Design Tokens"
+description: "Learn how to use Ant Design's Design Token system to apply custom colors, border radii, algorithms, and per-component styles via ConfigProvider."
+---
+
+Ant Design's theming system is built on **Design Tokens** — a three-layer hierarchy that lets you customize the visual style of every component from a small set of inputs. Since v5, themes are powered by CSS-in-JS, so you can switch themes at runtime, scope themes to parts of your page, and consume token values directly in your own styles.
+
+## Design Token layers
+
+The token system has three layers. Each layer is derived from the one above it, so changing a Seed Token cascades automatically through the whole component library.
+
+<CardGroup cols={3}>
+  <Card title="Seed Token">
+    The origin of all design intent. Examples: `colorPrimary`, `borderRadius`, `fontSize`. Changing one Seed Token affects a wide range of components.
+  </Card>
+  <Card title="Map Token">
+    Gradient variables derived from Seed Tokens by the active algorithm. Examples: `colorPrimaryBg`, `colorPrimaryBorder`. You can override individual Map Tokens without changing the algorithm.
+  </Card>
+  <Card title="Alias Token">
+    Semantic aliases of Map Tokens used to style specific component patterns in batches. Examples: `colorLink`, `colorTextSecondary`. Useful for fine-grained cross-component control.
+  </Card>
+</CardGroup>
+
+<Note>
+  In most cases, customizing Seed Tokens is sufficient. Use Map or Alias Tokens only when you need a higher degree of control over derived values.
+</Note>
+
+## Customize global design tokens
+
+Pass a `theme` object to `ConfigProvider` to override tokens globally. The `token` key accepts any Seed, Map, or Alias Token.
+
+```tsx
+import { Button, ConfigProvider, Space } from 'antd';
+
+const App: React.FC = () => (
+  <ConfigProvider
+    theme={{
+      token: {
+        // Seed Token — affects a wide range of components
+        colorPrimary: '#00b96b',
+        borderRadius: 2,
+
+        // Derived token — affects a narrower range
+        colorBgContainer: '#f6ffed',
+      },
+    }}
+  >
+    <Space>
+      <Button type="primary">Primary</Button>
+      <Button>Default</Button>
+    </Space>
+  </ConfigProvider>
+);
+
+export default App;
+```
+
+## Use preset algorithms
+
+Ant Design ships three built-in algorithms that expand Seed Tokens into Map Tokens:
+
+| Algorithm | Import path |
+|-----------|------------|
+| Default (light) | `theme.defaultAlgorithm` |
+| Dark | `theme.darkAlgorithm` |
+| Compact | `theme.compactAlgorithm` |
+
+You can pass a single algorithm or combine multiple in an array.
+
+<Tabs>
+  <Tab title="Dark mode">
+    ```tsx
+    import { Button, ConfigProvider, Input, Space, theme } from 'antd';
+
+    const App: React.FC = () => (
+      <ConfigProvider
+        theme={{
+          algorithm: theme.darkAlgorithm,
+        }}
+      >
+        <Space>
+          <Input placeholder="Please Input" />
+          <Button type="primary">Submit</Button>
+        </Space>
+      </ConfigProvider>
+    );
+
+    export default App;
+    ```
+  </Tab>
+  <Tab title="Dark + compact">
+    ```tsx
+    import { ConfigProvider, theme } from 'antd';
+
+    const App: React.FC = () => (
+      <ConfigProvider
+        theme={{
+          algorithm: [theme.darkAlgorithm, theme.compactAlgorithm],
+        }}
+      >
+        {/* your app */}
+      </ConfigProvider>
+    );
+
+    export default App;
+    ```
+  </Tab>
+</Tabs>
+
+## Customize per-component tokens
+
+Each component exposes its own **Component Token** that overrides only that component's styles. Use the `components` key inside `theme`.
+
+```tsx
+import { Button, ConfigProvider, Input, Space } from 'antd';
+
+const App: React.FC = () => (
+  <ConfigProvider
+    theme={{
+      components: {
+        Button: {
+          colorPrimary: '#00b96b',
+          algorithm: true, // derive shades using the global algorithm
+        },
+        Input: {
+          colorPrimary: '#eb2f96',
+          algorithm: true,
+        },
+      },
+    }}
+  >
+    <Space>
+      <Input placeholder="Please Input" />
+      <Button type="primary">Submit</Button>
+    </Space>
+  </ConfigProvider>
+);
+
+export default App;
+```
+
+<Info>
+  By default, component tokens only override the global token value and are not run through the algorithm. Set `algorithm: true` inside a component's token config to re-enable algorithmic derivation for that component.
+</Info>
+
+## Dynamic theme switching
+
+Because `ConfigProvider` is a standard React component, you can bind `theme` to state and update it at any time without extra configuration.
+
+```tsx
+import React, { useState } from 'react';
+import { Button, ColorPicker, ConfigProvider, Divider, Input, Space } from 'antd';
+
+const App: React.FC = () => {
+  const [primary, setPrimary] = useState('#1677ff');
+
+  return (
+    <>
+      <ColorPicker
+        showText
+        value={primary}
+        onChange={(color) => setPrimary(color.toHexString())}
+      />
+      <Divider />
+      <ConfigProvider
+        theme={{
+          token: {
+            colorPrimary: primary,
+          },
+        }}
+      >
+        <Space>
+          <Input placeholder="Please Input" />
+          <Button type="primary">Submit</Button>
+        </Space>
+      </ConfigProvider>
+    </>
+  );
+};
+
+export default App;
+```
+
+## Nested themes
+
+Wrap a sub-tree in its own `ConfigProvider` to apply a local theme. Tokens not specified in the child theme inherit from the parent.
+
+```tsx
+import { Button, ConfigProvider, Space } from 'antd';
+
+const App: React.FC = () => (
+  <ConfigProvider theme={{ token: { colorPrimary: '#1677ff' } }}>
+    <Space>
+      <Button type="primary">Theme 1</Button>
+      <ConfigProvider theme={{ token: { colorPrimary: '#00b96b' } }}>
+        <Button type="primary">Theme 2</Button>
+      </ConfigProvider>
+    </Space>
+  </ConfigProvider>
+);
+
+export default App;
+```
+
+## Consume tokens in your own components
+
+Use the `theme.useToken` hook to read the current theme's resolved token values inside any React component.
+
+```tsx
+import { theme } from 'antd';
+
+const { useToken } = theme;
+
+const MyComponent: React.FC = () => {
+  const { token } = useToken();
+
+  return (
+    <div
+      style={{
+        backgroundColor: token.colorPrimaryBg,
+        padding: token.padding,
+        borderRadius: token.borderRadius,
+        color: token.colorPrimaryText,
+        fontSize: token.fontSize,
+      }}
+    >
+      Styled with Design Tokens
+    </div>
+  );
+};
+
+export default MyComponent;
+```
+
+For use outside of React (for example, to generate a Less variable map), use the static `theme.getDesignToken` function:
+
+```tsx
+import type { ThemeConfig } from 'antd';
+import { theme } from 'antd';
+
+const config: ThemeConfig = {
+  token: {
+    colorPrimary: '#1890ff',
+  },
+};
+
+const globalToken = theme.getDesignToken(config);
+```
+
+## CSS Variables support
+
+Since v5, you can opt in to CSS Variables mode so that tokens are emitted as native CSS custom properties. This makes it easier to inspect tokens in browser DevTools and to integrate with external stylesheets.
+
+```tsx
+import { ConfigProvider } from 'antd';
+
+const App: React.FC = () => (
+  <ConfigProvider
+    theme={{
+      cssVar: {
+        prefix: 'ant', // default — CSS variable names will be --ant-*
+      },
+    }}
+  >
+    {/* your app */}
+  </ConfigProvider>
+);
+
+export default App;
+```
+
+## Zero-runtime mode (v6+)
+
+Starting from v6, you can enable `zeroRuntime` mode so Ant Design does not generate styles at runtime. You must import a pre-built CSS file manually.
+
+```tsx
+import 'antd/dist/antd.css';
+import { ConfigProvider } from 'antd';
+
+const App: React.FC = () => (
+  <ConfigProvider theme={{ zeroRuntime: true }}>
+    {/* your app */}
+  </ConfigProvider>
+);
+
+export default App;
+```
+
+If you need to include only a subset of component styles, or if your configuration changes the default `prefix`, use `@ant-design/static-style-extract` to generate static CSS:
+
+```tsx
+import fs from 'fs';
+import { extractStyle } from '@ant-design/static-style-extract';
+
+const cssText = extractStyle({
+  includes: ['Button'], // only include Button component styles
+});
+
+fs.writeFileSync('/path/to/output.css', cssText);
+```
+
+## Theme API reference
+
+### `theme` object (passed to `ConfigProvider`)
+
+| Property | Description | Type | Default | Version |
+|----------|-------------|------|---------|---------|
+| `token` | Override Design Tokens globally | `AliasToken` | — | |
+| `algorithm` | Algorithm(s) that expand Seed Tokens into Map Tokens | `MappingAlgorithm \| MappingAlgorithm[]` | `defaultAlgorithm` | |
+| `components` | Per-component token and alias token overrides | `ComponentsConfig` | — | |
+| `cssVar` | CSS Variables configuration | `{ prefix?: string; key?: string }` | — | |
+| `inherit` | Inherit theme from the nearest ancestor `ConfigProvider` | `boolean` | `true` | |
+| `hashed` | Apply style patch on hashed className | `boolean` | `true` | |
+| `zeroRuntime` | Disable runtime style generation; requires manual CSS import | `boolean` | `false` | 6.0.0 |
+
+<Warning>
+  `ConfigProvider` does not apply to static methods such as `message.xxx`, `Modal.xxx`, and `notification.xxx`. These methods create new React trees internally and cannot access the surrounding context. Use `Modal.useModal`, `message.useMessage`, or the `App` component to get access to context-aware versions of these APIs.
+</Warning>
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="Why do components re-mount when `theme` changes from undefined to an object?">
+    When `theme` is `undefined`, `ConfigProvider` skips rendering a `DesignTokenContext.Provider` layer. Switching from `undefined` to an object (or back) changes the React virtual DOM structure, triggering a re-mount. To avoid this, pass an empty object `{}` instead of `undefined`.
+  </Accordion>
+  <Accordion title="Can I use multiple algorithms at the same time?">
+    Yes. Pass an array to `algorithm`, for example `[theme.darkAlgorithm, theme.compactAlgorithm]`, to combine their effects. The algorithms are applied in order.
+  </Accordion>
+</AccordionGroup>
